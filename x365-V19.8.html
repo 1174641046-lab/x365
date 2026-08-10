@@ -137,7 +137,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 /* Text Input */
 .text-input{
   width:100%;background:var(--card);border:1px solid var(--sep);border-radius:var(--radius);
-  padding:14px 16px;color:var(--text3);margin-top:1px;color:var(--text);resize:none;font-family:var(--font);
+  padding:14px 16px;color:var(--text3);margin-top:1px;color:var(--text);resize:none;font-family:var(--font);font-size:17px;
   min-height:56px;transition:border-color .15s;line-height:1.5;
 }
 .text-input:focus{outline:none;border-color:var(--green-dim)}
@@ -1207,6 +1207,12 @@ function detectSubject(text){
         return mapId[key] || 'user';
       }
     }
+  }
+  // 检查自定义主体（新增）
+  for(var j=0;j<STATE.subjects.length;j++){
+    var subj = STATE.subjects[j];
+    if(subj.name && text.indexOf(subj.name) >= 0) return subj.id;
+    if(subj.emoji && text.indexOf(subj.emoji) >= 0) return subj.id;
   }
   return null; // null表示未检测到主体，fallback到'我'
 }
@@ -3017,6 +3023,7 @@ function addSubject(){
   saveState();
   renderSubjectBar();
   renderSubjectDiaries();
+  renderSubjectFilters();
   closeModal();
   showToast('已添加「'+name+'」');
 }
@@ -3027,6 +3034,7 @@ function deleteSubject(id){
   saveState();
   renderSubjectBar();
   renderSubjectDiaries();
+  renderSubjectFilters();
   // 刷新modal中的列表
   openSubjectModal();
   showToast('已删除');
@@ -4540,7 +4548,8 @@ function switchToManualMode(){
   var parseBtn = document.getElementById('parseBtn');
   
   if(manualBtn.classList.contains('big')){
-    // 已经是手动模式，不再处理（点击自己的icon不切换）
+    // 已经是手动模式，点击直接打开手动添加表单
+    openManualAdd();
     return;
   }
   
