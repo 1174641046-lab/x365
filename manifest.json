@@ -2,24 +2,21 @@
   "name": "x365 - 生活记录",
   "short_name": "x365",
   "description": "再小的坚持也有力量",
-  "start_url": "./x365-V19.8.html",
+  "start_url": "x365-V19.10.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0d1117",
+  "theme_color": "#30D158",
   "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-  "lang": "zh-CN"
+  ]
 }
