@@ -54,8 +54,8 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   display:flex;justify-content:space-between;align-items:flex-start;
 }
 .nav-header-left{flex:1;min-width:0}
-.nav-header h1{font-size:28px;font-weight:700;letter-spacing:-.5px}
-.nav-header .sub{font-size:13px;color:var(--text3);margin-top:1px}
+.nav-header h1{font-size:32px;font-weight:700;letter-spacing:-.5px}
+.nav-header .sub{font-size:15px;color:var(--text3);margin-top:1px}
 .header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:12px;margin-top:4px}
 .header-btn{
   width:36px;height:36px;border-radius:50%;background:var(--card);
@@ -73,7 +73,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .subject-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 20px 0}
 .subject-chip{
   display:flex;align-items:center;justify-content:center;gap:5px;padding:10px 14px;border-radius:10px;
-  background:var(--card);font-size:13px;font-weight:500;color:var(--text3);
+  background:var(--card);color:var(--text3);margin-top:1px;font-weight:500;color:var(--text3);
   white-space:nowrap;cursor:pointer;transition:all .15s;border:1.5px solid transparent;
 }
 .subject-chip.active{background:var(--green-bg);color:var(--green);border-color:var(--green-dim)}
@@ -128,16 +128,16 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   0%,100%{opacity:var(--base-opacity)}
   50%{opacity:calc(var(--base-opacity) + 0.15)}
 }
-.mode-label-below{text-align:center;font-size:13px;font-weight:600;color:var(--green);margin-top:8px;transition:opacity .3s}
+.mode-label-below{text-align:center;color:var(--text3);margin-top:1px;font-weight:600;color:var(--green);margin-top:8px;transition:opacity .3s}
 .atmosphere-wrap{position:relative;overflow:hidden}
 .atm-text{position:absolute;white-space:nowrap;pointer-events:none;font-weight:500;letter-spacing:1px;transition:opacity 1s ease;overflow:hidden;animation:float var(--float-dur,8s) ease-in-out infinite var(--float-delay,0s),breathe var(--breathe-dur,6s) ease-in-out infinite var(--breathe-delay,0s)}
-.record-status{text-align:center;font-size:13px;color:var(--text3);padding-bottom:12px}
+.record-status{text-align:center;color:var(--text3);margin-top:1px;color:var(--text3);padding-bottom:12px}
 .record-status.active{color:var(--green);font-weight:600}
 
 /* Text Input */
 .text-input{
   width:100%;background:var(--card);border:1px solid var(--sep);border-radius:var(--radius);
-  padding:14px 16px;font-size:13px;color:var(--text);resize:none;font-family:var(--font);
+  padding:14px 16px;color:var(--text3);margin-top:1px;color:var(--text);resize:none;font-family:var(--font);
   min-height:56px;transition:border-color .15s;line-height:1.5;
 }
 .text-input:focus{outline:none;border-color:var(--green-dim)}
@@ -160,8 +160,8 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .parse-preview.show{display:block}
 @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .parse-preview .pp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.parse-preview .pp-title{font-size:13px;color:var(--text3);font-weight:600}
-.parse-preview .pp-edit{font-size:13px;color:var(--green);cursor:pointer;font-weight:500}
+.parse-preview .pp-title{color:var(--text3);margin-top:1px;color:var(--text3);font-weight:600}
+.parse-preview .pp-edit{color:var(--text3);margin-top:1px;color:var(--green);cursor:pointer;font-weight:500}
 .parse-item{
   display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);
   border-radius:var(--radius);margin-bottom:6px;
@@ -172,7 +172,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .parse-item .pi-action{font-size:15px;font-weight:600;color:var(--text)}
 .parse-item .pi-meta{font-size:12px;color:var(--text3);margin-top:1px}
 .parse-item .pi-qty{font-size:20px;font-weight:700;color:var(--green);font-feature-settings:"tnum"}
-.parse-item .pi-qty .unit{font-size:13px;color:var(--text3);font-weight:500;margin-left:2px}
+.parse-item .pi-qty .unit{color:var(--text3);margin-top:1px;color:var(--text3);font-weight:500;margin-left:2px}
 .parse-item .pi-del{color:var(--text4);cursor:pointer;font-size:18px;padding:4px 8px}
 
 /* Encourage */
@@ -187,7 +187,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .encourage .enc-desc{font-size:12px;color:var(--text3);margin-top:1px}
 
 /* Recent */
-.section-label{font-size:13px;font-weight:600;color:var(--text3);padding:16px 20px 8px;text-transform:uppercase;letter-spacing:.3px}
+.section-label{color:var(--text3);margin-top:1px;font-weight:600;color:var(--text3);padding:16px 20px 8px;text-transform:uppercase;letter-spacing:.3px}
 .recent-list{padding:0 20px}
 .record-row{
   background:var(--card);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;
@@ -215,14 +215,14 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   background:linear-gradient(135deg,var(--green-dark),var(--green));text-align:center;
 }
 .stats-hero .sh-num{font-size:44px;font-weight:800;color:#fff;letter-spacing:-1px}
-.stats-hero .sh-label{font-size:13px;color:#FFFFFFAA;margin-top:2px}
+.stats-hero .sh-label{color:var(--text3);margin-top:1px;color:#FFFFFFAA;margin-top:2px}
 .stats-hero .sh-row{display:flex;justify-content:center;gap:32px;margin-top:16px}
 .stats-hero .sh-item{text-align:center}
 .stats-hero .sh-item .v{font-size:20px;font-weight:700;color:#fff}
 .stats-hero .sh-item .l{font-size:11px;color:#FFFFFF88}
 
 .stat-seg{display:flex;margin:0 20px 8px;background:var(--card2);border-radius:10px;padding:2px}
-.stat-seg-item{flex:1;padding:7px 0;text-align:center;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;color:var(--text3);transition:all .15s}
+.stat-seg-item{flex:1;padding:7px 0;text-align:center;color:var(--text3);margin-top:1px;font-weight:600;border-radius:8px;cursor:pointer;color:var(--text3);transition:all .15s}
 .stat-seg-item.active{background:var(--card3);color:var(--text)}
 
 .stat-card{background:var(--card);border-radius:var(--radius-lg);margin:0 20px 8px;padding:16px;overflow:hidden}
@@ -290,7 +290,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .date-nav-label{font-size:14px;font-weight:600;color:var(--text2);text-align:center;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 
 /* Floating Add Button */
-.fab-add{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 10px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#000;font-size:28px;font-weight:300;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(48,209,88,.4);z-index:50;transition:transform .15s,opacity .15s}
+.fab-add{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 10px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#000;font-size:32px;font-weight:300;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(48,209,88,.4);z-index:50;transition:transform .15s,opacity .15s}
 .fab-add:active{transform:scale(.92);opacity:.8}
 
 .timeline-page .fab-add{bottom:calc(var(--nav-h) + var(--safe-b) + 10px)}
@@ -318,7 +318,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-sheet .ms-handle{width:36px;height:5px;border-radius:3px;background:var(--text5);margin:0 auto 16px}
 .modal-sheet .ms-title{font-size:18px;font-weight:700;margin-bottom:16px}
-.modal-sheet .ms-label{font-size:13px;color:var(--text3);margin-bottom:6px;font-weight:600}
+.modal-sheet .ms-label{color:var(--text3);margin-top:1px;color:var(--text3);margin-bottom:6px;font-weight:600}
 .modal-sheet input,.modal-sheet select{
   width:100%;background:var(--card);border:1px solid var(--sep);border-radius:var(--radius);
   padding:12px 14px;font-size:16px;color:var(--text);font-family:var(--font);margin-bottom:12px;
@@ -338,7 +338,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .subject-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border-radius:var(--radius);margin-bottom:6px}
 .subject-list-item .emoji{font-size:18px}
 .subject-list-item .name{flex:1;font-size:14px}
-.subject-list-item .del{color:var(--red);cursor:pointer;font-size:13px}
+.subject-list-item .del{color:var(--red);cursor:pointer;color:var(--text3);margin-top:1px}
 
 /* ===== Empty ===== */
 .empty{text-align:center;padding:50px 20px;color:var(--text4)}
@@ -346,19 +346,19 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .empty .text{font-size:14px}
 
 /* ===== Toast ===== */
-#toast{position:fixed;bottom:calc(var(--nav-h) + 30px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--card3);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:300;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+#toast{position:fixed;bottom:calc(var(--nav-h) + 30px + var(--safe-b));left:50%;transform:translateX(-50%);background:var(--card3);color:#fff;padding:10px 18px;border-radius:20px;color:var(--text3);margin-top:1px;z-index:300;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
 
 /* ===== Custom Memory ===== */
 .parse-item-unknown{background:var(--card2);border:1px solid var(--orange)!important}
 .parse-item-unknown .pi-action{color:var(--text3)!important}
 .cm-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--sep);padding-bottom:8px}
-.cm-tab{padding:6px 14px;border-radius:8px;font-size:13px;color:var(--text3);cursor:pointer;transition:all .15s}
+.cm-tab{padding:6px 14px;border-radius:8px;color:var(--text3);margin-top:1px;color:var(--text3);cursor:pointer;transition:all .15s}
 .cm-tab.active{background:var(--green-bg);color:var(--green);font-weight:600}
 .cm-section{display:flex;flex-direction:column;gap:8px}
 .cm-add-btn{
   padding:10px 14px;background:var(--green-bg);color:var(--green);border-radius:var(--radius);
-  font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:background .15s
+  color:var(--text3);margin-top:1px;font-weight:600;cursor:pointer;text-align:center;transition:background .15s
 }
 .cm-add-btn:active{background:var(--green-dim)}
 .cm-item{
@@ -384,9 +384,9 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 /* ===== Weight Trend Cards ===== */
 .weight-trend-cards{display:flex;gap:10px;padding:0 20px;margin-bottom:12px}
 .weight-trend-card{flex:1;background:var(--card);border-radius:var(--radius-lg);padding:14px;text-align:center}
-.weight-trend-card .wtc-subject{font-size:13px;color:var(--text3);margin-bottom:6px}
-.weight-trend-card .wtc-weight{font-size:28px;font-weight:700;color:var(--green);font-feature-settings:"tnum"}
-.weight-trend-card .wtc-unit{font-size:13px;color:var(--text3);margin-left:2px}
+.weight-trend-card .wtc-subject{color:var(--text3);margin-top:1px;color:var(--text3);margin-bottom:6px}
+.weight-trend-card .wtc-weight{font-size:32px;font-weight:700;color:var(--green);font-feature-settings:"tnum"}
+.weight-trend-card .wtc-unit{color:var(--text3);margin-top:1px;color:var(--text3);margin-left:2px}
 .weight-trend-card .wtc-change{font-size:12px;margin-top:6px}
 .weight-trend-card .wtc-change.up{color:var(--red)}
 .weight-trend-card .wtc-change.down{color:var(--green)}
@@ -442,7 +442,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .settings-page{padding-bottom:calc(var(--nav-h) + var(--safe-b))}
 .settings-list{padding:12px 20px}
 .settings-group{margin-bottom:20px}
-.settings-group-title{font-size:13px;font-weight:600;color:var(--text4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:4px}
+.settings-group-title{color:var(--text3);margin-top:1px;font-weight:600;color:var(--text4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding-left:4px}
 .settings-item{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border-radius:var(--radius);margin-bottom:8px;cursor:pointer;transition:background .15s}
 .settings-item:active{background:var(--card2)}
 .settings-item-icon{font-size:20px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -496,7 +496,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
         </div>
       </div>
 
-      <div class="mode-label-below" id="modeLabelBelow" style="text-align:center;font-size:13px;font-weight:600;color:var(--green);margin-top:8px;margin-bottom:10px">语音添加</div>
+      <div class="mode-label-below" id="modeLabelBelow" style="text-align:center;color:var(--text3);margin-top:1px;font-weight:600;color:var(--green);margin-top:8px;margin-bottom:10px">语音添加</div>
       <textarea class="text-input" id="textInput" style="margin-top:5px" placeholder="或输入文字进行识别&#10;如：今天做了10个高抬腿，晚上出去散步30分钟"></textarea>
       <div class="input-btns">
         <button class="btn btn-primary" id="parseBtn" onclick="parseInput()">识别</button>
@@ -1042,10 +1042,7 @@ var SUBJECT_KEYWORDS = {
   '狗狗':{keywords:['狗狗','狗','小狗','修勾','旺财','大黄','带小狗'],emoji:'🐕'},
 };
 
-var DEFAULT_SUBJECTS = [
-  {id:'me',name:'我',emoji:'🙋',color:'#30D158'},
-  {id:'dog',name:'狗狗',emoji:'🐕',color:'#FF9F0A'},
-];
+var DEFAULT_SUBJECTS = [];
 
 // ===== 中文数字 =====
 var CN_NUM = {
@@ -1206,8 +1203,8 @@ function detectSubject(text){
     for(var i=0;i<info.keywords.length;i++){
       if(text.indexOf(info.keywords[i]) >= 0){
         // 映射到默认主体ID
-        var mapId = { '我':'me','狗狗':'dog','猫咪':'cat','宝宝':'baby','家人':'family','植物':'plant' };
-        return mapId[key] || 'me';
+        var mapId = { '我':'user','狗狗':'dog','猫咪':'cat','宝宝':'baby','家人':'family','植物':'plant' };
+        return mapId[key] || 'user';
       }
     }
   }
@@ -1416,7 +1413,7 @@ function parseActions(text){
     // 只有片段中显式包含主体关键词时，才使用该主体；否则继承上一个片段的主体，最后回退'我'
     var segSubject = detectSubject(seg);
     if(!segSubject && lastSubject) segSubject = lastSubject;
-    if(!segSubject) segSubject = 'me';
+    if(!segSubject) segSubject = 'user';
     lastSubject = segSubject;
     // 每个片段独立检测日期
     var segDateInfo = detectDate(seg);
@@ -1756,6 +1753,12 @@ function renderAtmosphere(){
       maxW = 100 - left;
     }
     if(maxW < 5) maxW = 5;
+    var text = poolShort[idx];
+    var containerPx = maxW * 4.8;
+    var textLen = text.replace(/['"]/g,'').length;
+    while(size * textLen > containerPx && size > 8){
+      size -= 1;
+    }
     var floatDur = (7 + Math.random() * 4).toFixed(1);
     var floatDelay = (Math.random() * 5).toFixed(1);
     var breatheDur = (5 + Math.random() * 3).toFixed(1);
@@ -1785,7 +1788,7 @@ var ACHIEVEMENTS = [
 var STATE = {
   records: [],
   subjects: JSON.parse(JSON.stringify(DEFAULT_SUBJECTS)),
-  currentSubject: 'me',
+  currentSubject: 'user',
   currentStatTab: 'day',
   statDay: new Date(),
   statWeek: new Date(),
@@ -2017,8 +2020,8 @@ function migrateV1(){
           STATE.subjects = newSubjects;
         }
         STATE.records = v6Data.records.map(function(r){
-          var oldSubMap = {'me':'me','dog':'dog','cat':'me','baby':'me','family':'me','plant':'me'};
-          var sub = oldSubMap[r.subject] || 'me';
+          var oldSubMap = {'me':'user','dog':'dog','cat':'user','baby':'user','family':'user','plant':'user'};
+          var sub = oldSubMap[r.subject] || 'user';
           return {
             id: r.id,
             rawText: r.rawText,
@@ -2049,8 +2052,8 @@ function migrateV1(){
           STATE.subjects = newSubjects5;
         }
         STATE.records = v5Data.records.map(function(r){
-          var oldSubMap = {'me':'me','dog':'dog','cat':'me','baby':'me','family':'me','plant':'me'};
-          var sub = oldSubMap[r.subject] || 'me';
+          var oldSubMap = {'me':'user','dog':'dog','cat':'user','baby':'user','family':'user','plant':'user'};
+          var sub = oldSubMap[r.subject] || 'user';
           return {
             id: r.id,
             rawText: r.rawText,
@@ -2081,8 +2084,8 @@ function migrateV1(){
           STATE.subjects = newSubjects4;
         }
         STATE.records = v4Data.records.map(function(r){
-          var oldSubMap = {'me':'me','dog':'dog','cat':'me','baby':'me','family':'me','plant':'me'};
-          var sub = oldSubMap[r.subject] || 'me';
+          var oldSubMap = {'me':'user','dog':'dog','cat':'user','baby':'user','family':'user','plant':'user'};
+          var sub = oldSubMap[r.subject] || 'user';
           return {
             id: r.id,
             rawText: r.rawText,
@@ -2113,8 +2116,8 @@ function migrateV1(){
           STATE.subjects = newSubjects3;
         }
         STATE.records = v3Data.records.map(function(r){
-          var oldSubMap = {'me':'me','dog':'dog','cat':'me','baby':'me','family':'me','plant':'me'};
-          var sub = oldSubMap[r.subject] || 'me';
+          var oldSubMap = {'me':'user','dog':'dog','cat':'user','baby':'user','family':'user','plant':'user'};
+          var sub = oldSubMap[r.subject] || 'user';
           return {
             id: r.id,
             rawText: r.rawText,
@@ -2164,7 +2167,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2196,7 +2199,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2228,7 +2231,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2260,7 +2263,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2293,7 +2296,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2327,7 +2330,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2361,7 +2364,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2395,7 +2398,7 @@ function migrateV1(){
             id: r.id,
             rawText: r.rawText,
             actions: r.actions,
-            subject: r.subject || 'me',
+            subject: r.subject || 'user',
             timestamp: r.timestamp,
             date: r.date,
             time: r.time,
@@ -2430,7 +2433,7 @@ function migrateV1(){
     var migrated = v1Data.records.map(function(r){
       var parsed = parseActions(r.text);
       var dateInfo = detectDate(r.text, r.timestamp);
-      var subject = detectSubject(r.text) || 'me';
+      var subject = detectSubject(r.text) || 'user';
       return {
         id: r.id || (Date.now()+'_'+Math.random()),
         rawText: r.text,
@@ -2492,9 +2495,13 @@ function initSpeech(){
         if(event.results[i].isFinal) final += t;
         else interim += t;
       }
-      if(interim) document.getElementById('recordStatus').textContent = '听到：' + interim;
+      var textInput = document.getElementById('textInput');
+      if(interim){
+        document.getElementById('recordStatus').textContent = '听到：' + interim;
+        textInput.value = interim;
+      }
       if(final){
-        document.getElementById('textInput').value = final;
+        textInput.value = final;
         document.getElementById('recordStatus').textContent = '识别完成，点击「识别」';
         setTimeout(function(){ parseInput(); }, 300);
       }
@@ -2640,7 +2647,7 @@ function renderParsePreview(){
             '<div class="pi-action">⏰ '+(r.event || r.content)+'</div>' +
             '<div class="pi-meta">提醒 · 📅 '+r.remindDate+' · 从'+(r.eventDate || formatDate(new Date()))+'起'+(r.days > 0 ? r.days+'天' : '今天')+'</div>' +
           '</div>' +
-          '<div class="pi-qty" style="color:var(--orange);font-size:13px">提醒</div>' +
+          '<div class="pi-qty" style="color:var(--orange);color:var(--text3);margin-top:1px">提醒</div>' +
           '<div class="pi-del" onclick="removePendingReminder('+idx+')">×</div>' +
         '</div>';
       });
@@ -2700,7 +2707,7 @@ function editPreview(){
     html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
     STATE.subjects.forEach(function(s){
       var isActive = p.subject === s.id;
-      html += '<div style="padding:4px 10px;border-radius:16px;font-size:13px;cursor:pointer;transition:all .15s;'+
+      html += '<div style="padding:4px 10px;border-radius:16px;color:var(--text3);margin-top:1px;cursor:pointer;transition:all .15s;'+
         (isActive ? 'background:var(--green-bg);color:var(--green);border:1.5px solid var(--green-dim)' : 'background:var(--card2);color:var(--text3);border:1.5px solid transparent')+'"'+
         ' onclick="editPreviewSubject('+idx+',\''+s.id+'\')">'+s.emoji+' '+s.name+'</div>';
     });
@@ -2967,7 +2974,7 @@ function openSubjectModal(){
     html += '<div class="subject-list-item">' +
       '<span class="emoji">'+s.emoji+'</span>' +
       '<span class="name">'+s.name+'</span>' +
-      (s.id !== 'me' ? '<span class="del" onclick="deleteSubject(\''+s.id+'\')">删除</span>' : '<span style="color:var(--text4);font-size:12px">默认</span>') +
+      (s.id !== 'user' ? '<span class="del" onclick="deleteSubject(\''+s.id+'\')">删除</span>' : '<span style="color:var(--text4);font-size:12px">默认</span>') +
     '</div>';
   });
   html += '</div>';
@@ -3016,7 +3023,7 @@ function addSubject(){
 
 function deleteSubject(id){
   STATE.subjects = STATE.subjects.filter(function(s){return s.id !== id});
-  if(STATE.currentSubject === id) STATE.currentSubject = 'me';
+  if(STATE.currentSubject === id) STATE.currentSubject = 'user';
   saveState();
   renderSubjectBar();
   renderSubjectDiaries();
@@ -3387,7 +3394,7 @@ function renderTodayOverview(){
 
   if(todayRecords.length === 0){
     container.innerHTML = '<div class="to-header"><div class="to-title">当天统计</div><div class="to-date">'+dateStr+'</div></div>' +
-      '<div style="text-align:center;padding:16px 0;color:var(--text4);font-size:13px">还没有记录，开始记录今天的第一件事吧 🌱</div>';
+      '<div style="text-align:center;padding:16px 0;color:var(--text4);color:var(--text3);margin-top:1px">还没有记录，开始记录今天的第一件事吧 🌱</div>';
     return;
   }
 
@@ -3689,8 +3696,8 @@ function renderDailyDetail(records, periodLabel){
     Object.keys(d.items).sort(function(a,b){return d.items[b].qty - d.items[a].qty}).forEach(function(key){
       var item = d.items[key];
       html += '<div class="cum-row" style="padding-left:40px">' +
-        '<div class="cr-icon" style="background:var(--card2);width:24px;height:24px;font-size:13px;border-radius:6px">'+item.icon+'</div>' +
-        '<div class="cr-name" style="font-size:13px;color:var(--text3)">'+item.name+'</div>' +
+        '<div class="cr-icon" style="background:var(--card2);width:24px;height:24px;color:var(--text3);margin-top:1px;border-radius:6px">'+item.icon+'</div>' +
+        '<div class="cr-name" style="color:var(--text3);margin-top:1px;color:var(--text3)">'+item.name+'</div>' +
         '<div class="cr-qty num" style="font-size:14px">'+item.qty+'<span class="u" style="font-size:10px">'+item.unit+'</span></div>' +
       '</div>';
     });
@@ -3777,8 +3784,8 @@ function renderCumulative(records, title, subtitle){
     Object.keys(d.items).sort(function(a,b){return d.items[b].qty - d.items[a].qty}).forEach(function(key){
       var item = d.items[key];
       html += '<div class="cum-row" style="padding-left:40px">' +
-        '<div class="cr-icon" style="background:var(--card2);width:24px;height:24px;font-size:13px;border-radius:6px">'+item.icon+'</div>' +
-        '<div class="cr-name" style="font-size:13px;color:var(--text3)">'+item.name+'</div>' +
+        '<div class="cr-icon" style="background:var(--card2);width:24px;height:24px;color:var(--text3);margin-top:1px;border-radius:6px">'+item.icon+'</div>' +
+        '<div class="cr-name" style="color:var(--text3);margin-top:1px;color:var(--text3)">'+item.name+'</div>' +
         '<div class="cr-qty num" style="font-size:14px">'+item.qty+'<span class="u" style="font-size:10px">'+item.unit+'</span></div>' +
       '</div>';
     });
@@ -4593,10 +4600,10 @@ function openManualAdd(){
   html += '<div style="font-size:12px;color:var(--text4);margin-bottom:4px">主体</div>';
   html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
   STATE.subjects.forEach(function(s){
-    html += '<div class="manual-chip" data-type="subject" data-value="'+s.id+'" onclick="selectManualChip(this)" style="padding:4px 10px;border-radius:16px;font-size:13px;cursor:pointer;transition:all .15s;background:var(--card2);color:var(--text3);border:1.5px solid transparent">'+s.emoji+' '+s.name+'</div>';
+    html += '<div class="manual-chip" data-type="subject" data-value="'+s.id+'" onclick="selectManualChip(this)" style="padding:4px 10px;border-radius:16px;color:var(--text3);margin-top:1px;cursor:pointer;transition:all .15s;background:var(--card2);color:var(--text3);border:1.5px solid transparent">'+s.emoji+' '+s.name+'</div>';
   });
   html += '</div></div>';
-  html += '<input type="hidden" id="manualSubject" value="me">';
+  html += '<input type="hidden" id="manualSubject" value="user">';
 
   // 分类
   var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
@@ -4680,7 +4687,7 @@ function saveManualAdd(){
   var name = document.getElementById('manualActionName').value.trim();
   var qty = parseFloat(document.getElementById('manualQuantity').value) || 1;
   var unit = document.getElementById('manualUnit').value.trim() || '次';
-  var subject = document.getElementById('manualSubject').value || 'me';
+  var subject = document.getElementById('manualSubject').value || 'user';
   var category = document.getElementById('manualCategory').value || '其他';
   var dateStr = document.getElementById('manualDate').value;
 
@@ -4880,19 +4887,50 @@ function checkReminders(){
   }
 }
 
+function showUserNamePrompt(){
+  var html = '<div class="ms-title" style="text-align:center">欢迎使用 x365</div>';
+  html += '<div style="text-align:center;color:var(--text3);font-size:14px;margin-bottom:20px">请输入你的名字</div>';
+  html += '<input type="text" id="userNameInput" placeholder="你的名字" style="width:100%;margin-bottom:20px;text-align:center;font-size:18px">';
+  html += '<button class="btn btn-primary" style="width:100%" onclick="saveUserName()">开始记录</button>';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function saveUserName(){
+  var name = document.getElementById('userNameInput').value.trim();
+  if(!name) name = '我';
+  STATE.subjects.push({id:'user',name:name,emoji:'🙋',color:'#30D158'});
+  STATE.currentSubject = 'user';
+  saveState();
+  closeModal();
+  rebuildAliasMap();
+  initSpeech();
+  renderSubjectBar();
+  renderTodayOverview();
+  renderSubjectDiaries();
+  renderAtmosphere();
+  checkAchievements();
+  setTimeout(initScrollFloat, 100);
+  setTimeout(checkReminders, 1500);
+}
+
 // ===== 初始化 =====
 loadState();
-rebuildAliasMap();
-initSpeech();
-renderSubjectBar();
-renderTodayOverview();
-renderSubjectDiaries();
-renderAtmosphere();
-checkAchievements();
-// 初始化滚动悬浮
-setTimeout(initScrollFloat, 100);
-// 页面加载时检查提醒
-setTimeout(checkReminders, 1500);
+if(STATE.subjects.length === 0){
+  showUserNamePrompt();
+}else{
+  rebuildAliasMap();
+  initSpeech();
+  renderSubjectBar();
+  renderTodayOverview();
+  renderSubjectDiaries();
+  renderAtmosphere();
+  checkAchievements();
+  // 初始化滚动悬浮
+  setTimeout(initScrollFloat, 100);
+  // 页面加载时检查提醒
+  setTimeout(checkReminders, 1500);
+}
 </script>
 </body>
 </html>
