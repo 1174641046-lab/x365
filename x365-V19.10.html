@@ -3278,6 +3278,11 @@ function renderSubjectBar(){
     html += '<div class="subject-chip '+active+'" onclick="selectSubject(\''+s.id+'\')">' +
       '<span class="emoji">'+s.emoji+'</span>'+s.name+'</div>';
   });
+  STATE.customSubjects.forEach(function(s){
+    var active = s.id === STATE.currentSubject ? 'active' : '';
+    html += '<div class="subject-chip '+active+'" onclick="selectSubject(\''+s.id+'\')">' +
+      '<span class="emoji">'+s.emoji+'</span>'+s.name+'</div>';
+  });
   html += '<div class="subject-chip add" onclick="openSubjectModal()">+ 添加</div>';
   bar.innerHTML = html;
 }
@@ -3296,6 +3301,14 @@ function openSubjectModal(){
       '<span class="emoji">'+s.emoji+'</span>' +
       '<span class="name">'+s.name+'</span>' +
       (s.id !== 'user' ? '<span class="del" onclick="deleteSubject(\''+s.id+'\')">删除</span>' : '<span style="color:var(--text4);font-size:12px">默认</span>') +
+    '</div>';
+  });
+  STATE.customSubjects.forEach(function(s){
+    html += '<div class="subject-list-item">' +
+      '<span class="emoji">'+s.emoji+'</span>' +
+      '<span class="name">'+escapeHtml(s.name)+'</span>' +
+      '<span style="color:var(--text4);font-size:11px;margin-left:auto;padding-right:8px">自定义</span>' +
+      '<span class="del" onclick="deleteCustomSubject(\''+s.id+'\')">删除</span>' +
     '</div>';
   });
   html += '</div>';
@@ -4613,6 +4626,10 @@ function renderSubjectFilters(){
     STATE.subjects.forEach(function(s){
       var active = filter === s.id ? 'active' : '';
       html += '<div class="sf-chip '+active+'" onclick="setFilter(\''+id+'\',\''+s.id+'\')"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+s.name+'</span></div>';
+    });
+    STATE.customSubjects.forEach(function(s){
+      var active = filter === s.id ? 'active' : '';
+      html += '<div class="sf-chip '+active+'" onclick="setFilter(\''+id+'\',\''+s.id+'\')"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+escapeHtml(s.name)+'</span></div>';
     });
     container.innerHTML = html;
   });
