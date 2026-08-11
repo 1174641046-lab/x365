@@ -1466,12 +1466,20 @@ function detectSubject(text){
       }
     }
   }
-  // 检查自定义主体（新增）
-  for(var j=0;j<STATE.subjects.length;j++){
-    var subj = STATE.subjects[j];
+  // 检查自定义主体
+  for(var j=0;j < STATE.customSubjects.length;j++){
+    var subj = STATE.customSubjects[j];
     if(subj.name && text.indexOf(subj.name) >= 0) return subj.id;
     if(subj.emoji && text.indexOf(subj.emoji) >= 0) return subj.id;
+    // 匹配用户设置的关键词
+    if(subj.keywords && subj.keywords.length > 0){
+      for(var k=0;k < subj.keywords.length;k++){
+        if(subj.keywords[k] && text.indexOf(subj.keywords[k]) >= 0) return subj.id;
+      }
+    }
   }
+  return null; // null表示未检测到主体，fallback到'user'
+}
   return null; // null表示未检测到主体，fallback到'我'
 }
 
@@ -3015,6 +3023,12 @@ function editPreview(){
         (isActive ? 'background:var(--green-bg);color:var(--green);border:1.5px solid var(--green-dim)' : 'background:var(--card2);color:var(--text3);border:1.5px solid transparent')+'"'+
         ' onclick="editPreviewSubject('+idx+',\''+s.id+'\')">'+s.emoji+' '+s.name+'</div>';
     });
+    STATE.customSubjects.forEach(function(s){
+      var isActive = p.subject === s.id;
+      html += '<div style="padding:4px 10px;border-radius:16px;color:var(--text3);margin-top:1px;cursor:pointer;transition:all .15s;'+
+        (isActive ? 'background:var(--green-bg);color:var(--green);border:1.5px solid var(--green-dim)' : 'background:var(--card2);color:var(--text3);border:1.5px solid transparent')+'"'+
+        ' onclick="editPreviewSubject('+idx+',\''+s.id+'\')">'+s.emoji+' '+s.name+'</div>';
+    });
     html += '</div></div>';
 
     // 分类选择
@@ -3247,7 +3261,10 @@ function clearInput(){
 function getSubject(id){
   var sub = STATE.subjects.find(function(s){return s.id === id});
   if(sub) return sub;
-  // Fallback 到默认主体列表（识别结果即使主体被删除也显示对应默认名）
+  // 查找自定义主体
+  var custom = STATE.customSubjects.find(function(s){return s.id === id});
+  if(custom) return custom;
+  // Fallback 到默认主体列表
   var def = DEFAULT_SUBJECTS.find(function(s){return s.id === id});
   if(def) return def;
   return {emoji:'🙋',color:'#30D158',name:'我'};
@@ -3755,7 +3772,8 @@ function renderSubjectDiaries(){
   var today = formatDate(new Date());
 
   var html = '';
-  STATE.subjects.forEach(function(s){
+  var allSubjects = STATE.subjects.concat(STATE.customSubjects);
+  allSubjects.forEach(function(s){
     // 该主体所有记录
     var allRecords = STATE.records.filter(function(r){return r.subject === s.id});
     // 该主体今日记录
