@@ -458,8 +458,8 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
 /* ===== V19.11 Swipe Delete ===== */
 .tl-row-wrapper{position:relative;overflow:hidden;border-radius:var(--radius)}
-.tl-delete-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;border-radius:var(--radius)}
-.tl-row-swipe{position:relative;background:var(--card);transition:transform .2s ease;will-change:transform;touch-action:pan-y}
+.tl-delete-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;border-radius:0 var(--radius) var(--radius) 0;z-index:0}
+.tl-row-swipe{position:relative;background:var(--card);width:100%;transition:transform .2s ease;will-change:transform;touch-action:pan-y;z-index:1}
 .tl-row-swipe.swiped{transform:translateX(-80px)}
 
 /* ===== V19.11 Multi-Select ===== */
@@ -471,7 +471,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .tl-multiselect-bar .ms-btn.cancel{background:var(--card);color:var(--text3)}
 .rr-checkbox{width:22px;height:22px;border-radius:6px;border:2px solid var(--text4);flex-shrink:0;margin-right:4px;position:relative}
 .rr-checkbox.checked{background:var(--green);border-color:var(--green)}
-.rr-checkbox.checked::after{content:'\u2713';position:absolute;color:#000;font-size:14px;top:50%;left:50%;transform:translate(-50%,-50%)}
+.rr-checkbox.checked::after{content:'✓';position:absolute;color:#000;font-size:14px;top:50%;left:50%;transform:translate(-50%,-50%)}
 
 /* ===== V19.11 Notes Display ===== */
 .rr-notes{font-size:11px;color:var(--text3);margin-top:2px;padding-left:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -614,7 +614,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       </div>
     </div>
     <div class="subject-filter" id="tlSubjectFilter"></div>
-    <div class="tl-search-bar"><input type="text" id="tlSearchInput" placeholder="\u{1F50D} \u641c\u7d22\u8bb0\u5f55..." oninput="onTLSearch(this.value)"></div>
+    <div class="tl-search-bar"><input type="text" id="tlSearchInput" placeholder="🔍 搜索记录..." oninput="onTLSearch(this.value)"></div>
     <div id="timelineContainer" style="padding-top:4px;padding-bottom:80px"></div>
     <div class="fab-add" onclick="switchPage('record')" title="添加记录">+</div>
   </div>
@@ -668,23 +668,23 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   <div class="page calendar-page" id="page-calendar">
     <div class="nav-header">
       <div class="nav-header-left">
-        <h1>\u6253\u5361</h1>
-        <div class="sub">\u65e5\u590d\u4e00\u65e5\uff0c\u89c1\u8bc1\u575a\u6301</div>
+        <h1>打卡</h1>
+        <div class="sub">日复一日，见证坚持</div>
       </div>
       <div class="header-actions">
-        <div class="header-btn" onclick="switchPage('settings')" title="\u8bbe\u7f6e">\u{1F464}</div>
+        <div class="header-btn" onclick="switchPage('settings')" title="设置">👤</div>
       </div>
     </div>
     <div class="cal-filter-bar">
-      <select id="calFilterSubject" onchange="renderCalendar()"><option value="all">\u5168\u90e8\u4e3b\u4f53</option></select>
-      <select id="calFilterCategory" onchange="renderCalendar()"><option value="all">\u5168\u90e8\u5206\u7c7b</option></select>
+      <select id="calFilterSubject" onchange="renderCalendar()"><option value="all">全部主体</option></select>
+      <select id="calFilterCategory" onchange="renderCalendar()"><option value="all">全部分类</option></select>
     </div>
     <div class="cal-month-nav">
-      <div class="cal-nav-btn" onclick="prevCalendarMonth()">\u2039</div>
+      <div class="cal-nav-btn" onclick="prevCalendarMonth()">‹</div>
       <div id="calMonthLabel" class="cal-month-label"></div>
-      <div class="cal-nav-btn" onclick="nextCalendarMonth()">\u203a</div>
+      <div class="cal-nav-btn" onclick="nextCalendarMonth()">›</div>
     </div>
-    <div class="cal-weekdays"><div>\u65e5</div><div>\u4e00</div><div>\u4e8c</div><div>\u4e09</div><div>\u56db</div><div>\u4e94</div><div>\u516d</div></div>
+    <div class="cal-weekdays"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
     <div class="cal-grid" id="calGrid"></div>
     <div class="cal-day-detail" id="calDayDetail"></div>
   </div>
@@ -2208,7 +2208,7 @@ function migrateV1(){
         if(v1910Data.reminders) STATE.reminders = v1910Data.reminders;
         if(v1910Data.categoryColors) STATE.categoryColors = v1910Data.categoryColors;
         saveState();
-        console.log('V19.10\u6570\u636e\u5df2\u8fc1\u79fb\u5230V19.11\uff1a'+STATE.records.length+'\u6761');
+        console.log('V19.10数据已迁移到V19.11：'+STATE.records.length+'条');
         return;
       }
     }catch(e){ console.warn('v19.10 migration error',e); }
@@ -3242,7 +3242,7 @@ function autoAddToLibraries(record){
         }
       } else {
         // Update unit if different
-        if(a.unit && a.unit !== existing.unit && a.unit !== '\u5df2\u8bb0\u5f55'){
+        if(a.unit && a.unit !== existing.unit && a.unit !== '已记录'){
           existing.unit = a.unit;
         }
       }
@@ -3701,12 +3701,12 @@ function saveCustomActionFromUnknown(idx){
 
 function openCustomMemoryLibrary(){
   var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
-  html += '<div class="ms-title" style="margin-bottom:0">\u4e3b\u4f53\u5e93 / \u52a8\u4f5c\u5e93</div>';
-  html += '<div style="width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)" onclick="closeModal()">\u2715</div>';
+  html += '<div class="ms-title" style="margin-bottom:0">主体库 / 动作库</div>';
+  html += '<div style="width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)" onclick="closeModal()">✕</div>';
   html += '</div>';
   html += '<div class="cm-tabs">';
-  html += '<div class="cm-tab active" data-tab="subjects" onclick="showMemoryTab(this)">\u4e3b\u4f53\u5e93</div>';
-  html += '<div class="cm-tab" data-tab="actions" onclick="showMemoryTab(this)">\u52a8\u4f5c\u5e93</div>';
+  html += '<div class="cm-tab active" data-tab="subjects" onclick="showMemoryTab(this)">主体库</div>';
+  html += '<div class="cm-tab" data-tab="actions" onclick="showMemoryTab(this)">动作库</div>';
   html += '</div>';
   html += '<div id="memoryPanel"></div>';
   document.getElementById('modalContent').innerHTML = html;
@@ -3723,9 +3723,9 @@ function showMemoryTab(el){
   var panel = document.getElementById('memoryPanel');
   if(tab === 'subjects'){
     var html = '<div class="cm-section">';
-    html += '<div class="cm-add-btn" onclick="showAddSubjectForm()">+ \u6dfb\u52a0\u81ea\u5b9a\u4e49\u4e3b\u4f53</div>';
+    html += '<div class="cm-add-btn" onclick="showAddSubjectForm()">+ 添加自定义主体</div>';
     // Show built-in subjects (read-only)
-    html += '<div style="font-size:11px;color:var(--text4);padding:8px 0 4px">\u5185\u7f6e\u4e3b\u4f53</div>';
+    html += '<div style="font-size:11px;color:var(--text4);padding:8px 0 4px">内置主体</div>';
     STATE.subjects.forEach(function(s){
       var catColor = s.color || '#30D158';
       html += '<div class="cm-item" style="opacity:.7">';
@@ -3736,28 +3736,28 @@ function showMemoryTab(el){
     });
     // Custom subjects with edit/delete
     if(STATE.customSubjects.length > 0){
-      html += '<div style="font-size:11px;color:var(--text4);padding:12px 0 4px">\u81ea\u5b9a\u4e49\u4e3b\u4f53</div>';
+      html += '<div style="font-size:11px;color:var(--text4);padding:12px 0 4px">自定义主体</div>';
     }
     STATE.customSubjects.forEach(function(s){
       html += '<div class="cm-item">';
       html += '<div class="cm-item-info">';
       html += '<div class="cm-item-emoji">'+s.emoji+'</div>';
       html += '<div class="cm-item-name">'+escapeHtml(s.name)+'<span class="cal-cat-color-dot" style="background:'+(s.color||'#30D158')+';margin-left:8px"></span></div>';
-      html += '<div class="cm-item-keywords">\u5173\u952e\u8bcd\uff1a'+escapeHtml((s.keywords||[]).join('\u3001'))+'</div>';
+      html += '<div class="cm-item-keywords">关键词：'+escapeHtml((s.keywords||[]).join('、'))+'</div>';
       html += '</div>';
       html += '<div class="cm-item-actions">';
-      html += '<div class="cm-item-btn edit" data-sub-id="'+s.id+'" onclick="showEditSubjectForm(this.dataset.subId)">\u7f16\u8f91</div>';
-      html += '<div class="cm-item-btn delete" data-sub-id="'+s.id+'" onclick="deleteCustomSubjectBtn(this)">\u5220\u9664</div>';
+      html += '<div class="cm-item-btn edit" data-sub-id="'+s.id+'" onclick="showEditSubjectForm(this.dataset.subId)">编辑</div>';
+      html += '<div class="cm-item-btn delete" data-sub-id="'+s.id+'" onclick="deleteCustomSubjectBtn(this)">删除</div>';
       html += '</div></div>';
     });
     html += '</div>';
     panel.innerHTML = html;
   } else {
     var html = '<div class="cm-section">';
-    html += '<div class="cm-add-btn" onclick="showAddActionForm()">+ \u6dfb\u52a0\u81ea\u5b9a\u4e49\u52a8\u4f5c</div>';
+    html += '<div class="cm-add-btn" onclick="showAddActionForm()">+ 添加自定义动作</div>';
     var actionNames = Object.keys(STATE.customActions);
     if(actionNames.length === 0){
-      html += '<div style="text-align:center;padding:20px;color:var(--text4)">\u8fd8\u6ca1\u6709\u81ea\u5b9a\u4e49\u52a8\u4f5c</div>';
+      html += '<div style="text-align:center;padding:20px;color:var(--text4)">还没有自定义动作</div>';
     } else {
       actionNames.forEach(function(name){
         var a = STATE.customActions[name];
@@ -3765,12 +3765,12 @@ function showMemoryTab(el){
         html += '<div class="cm-item">';
         html += '<div class="cm-item-info">';
         html += '<div class="cm-item-emoji">'+a.icon+'</div>';
-        html += '<div class="cm-item-name">'+escapeHtml(name)+'<span class="cal-cat-color-dot" style="background:'+catColor+';margin-left:8px"></span><span style="font-size:11px;color:var(--text4);margin-left:8px">'+a.cat+' \u00b7 '+a.unit+(a.durationPerTime ? ' \u00b7 \u5355\u6b21'+a.durationPerTime+'\u5206\u949f' : '')+'</span></div>';
-        html += '<div class="cm-item-keywords">\u522b\u540d\uff1a'+escapeHtml((a.aliases||[]).join('\u3001'))+'</div>';
+        html += '<div class="cm-item-name">'+escapeHtml(name)+'<span class="cal-cat-color-dot" style="background:'+catColor+';margin-left:8px"></span><span style="font-size:11px;color:var(--text4);margin-left:8px">'+a.cat+' · '+a.unit+(a.durationPerTime ? ' · 单次'+a.durationPerTime+'分钟' : '')+'</span></div>';
+        html += '<div class="cm-item-keywords">别名：'+escapeHtml((a.aliases||[]).join('、'))+'</div>';
         html += '</div>';
         html += '<div class="cm-item-actions">';
-        html += '<div class="cm-item-btn edit" data-action-name="'+name+'" onclick="showEditActionForm(this.dataset.actionName)">\u7f16\u8f91</div>';
-        html += '<div class="cm-item-btn delete" data-action-name="'+name+'" onclick="deleteCustomActionBtn(this)">\u5220\u9664</div>';
+        html += '<div class="cm-item-btn edit" data-action-name="'+name+'" onclick="showEditActionForm(this.dataset.actionName)">编辑</div>';
+        html += '<div class="cm-item-btn delete" data-action-name="'+name+'" onclick="deleteCustomActionBtn(this)">删除</div>';
         html += '</div></div>';
       });
     }
@@ -3783,14 +3783,14 @@ function showMemoryTab(el){
 function showEditSubjectForm(id){
   var s = STATE.customSubjects.find(function(x){return x.id === id});
   if(!s) return;
-  var html = '<div class="ms-title">\u7f16\u8f91\u81ea\u5b9a\u4e49\u4e3b\u4f53</div>';
-  html += '<div class="ms-label">\u4e3b\u4f53\u540d\u79f0</div>';
+  var html = '<div class="ms-title">编辑自定义主体</div>';
+  html += '<div class="ms-label">主体名称</div>';
   html += '<input type="text" id="editSubName" value="'+escapeHtml(s.name)+'">';
-  html += '<div class="ms-label">emoji \u56fe\u6807</div>';
+  html += '<div class="ms-label">emoji 图标</div>';
   html += '<input type="text" id="editSubEmoji" value="'+s.emoji+'" maxlength="2" style="width:60px;text-align:center;font-size:20px">';
-  html += '<div class="ms-label">\u8bc6\u522b\u5173\u952e\u8bcd\uff08\u7528\u9017\u53f7\u5206\u9694\uff09</div>';
+  html += '<div class="ms-label">识别关键词（用逗号分隔）</div>';
   html += '<input type="text" id="editSubKeywords" value="'+escapeHtml((s.keywords||[]).join(','))+'">';
-  html += '<div class="ms-label">\u989c\u8272\u6807\u6ce8</div>';
+  html += '<div class="ms-label">颜色标注</div>';
   html += '<div class="color-picker-row" id="editSubColorPicker">';
   var presets = ['#FF9F0A','#BF5AF2','#FF375F','#40C8E0','#0A84FF','#FFD60A','#30D158','#FF6482','#FF453A','#8E8E93','#FF6B6B','#4ECDC4','#FCBAD3','#A8E6CF','#FFD93D','#FF8C42','#6BCB77','#FF6392','#4D96FF','#95E1D3'];
   presets.forEach(function(col){
@@ -3800,8 +3800,8 @@ function showEditSubjectForm(id){
   html += '</div>';
   html += '<input type="hidden" id="editSubColor" value="'+(s.color||'#30D158')+'">';
   html += '<div class="ms-actions">';
-  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">\u53d6\u6d88</button>';
-  html += '<button class="btn btn-primary" onclick="saveEditSubject(\''+id+'\')">\u4fdd\u5b58</button>';
+  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">取消</button>';
+  html += '<button class="btn btn-primary" onclick="saveEditSubject(\''+id+'\')">保存</button>';
   html += '</div>';
   document.getElementById('modalContent').innerHTML = html;
 }
@@ -3810,36 +3810,36 @@ function saveEditSubject(id){
   var s = STATE.customSubjects.find(function(x){return x.id === id});
   if(!s) return;
   var name = document.getElementById('editSubName').value.trim();
-  var emoji = document.getElementById('editSubEmoji').value.trim() || '\u{1F431}';
+  var emoji = document.getElementById('editSubEmoji').value.trim() || '🐱';
   var keywordsText = document.getElementById('editSubKeywords').value.trim();
   var color = document.getElementById('editSubColor').value || '#30D158';
-  if(!name){ showToast('\u8bf7\u8f93\u5165\u540d\u79f0'); return; }
+  if(!name){ showToast('请输入名称'); return; }
   s.name = name;
   s.emoji = emoji;
   s.color = color;
-  s.keywords = keywordsText ? keywordsText.split(/[,\uff0c]/).map(function(a){return a.trim()}).filter(function(a){return a}) : [name];
+  s.keywords = keywordsText ? keywordsText.split(/[,，]/).map(function(a){return a.trim()}).filter(function(a){return a}) : [name];
   saveState();
   openCustomMemoryLibrary();
   renderSubjectBar();
-  showToast('\u5df2\u4fdd\u5b58\u4fee\u6539');
+  showToast('已保存修改');
 }
 
 function showEditActionForm(name){
   var a = STATE.customActions[name];
   if(!a) return;
-  var html = '<div class="ms-title">\u7f16\u8f91\u81ea\u5b9a\u4e49\u52a8\u4f5c</div>';
-  html += '<div class="ms-label">\u52a8\u4f5c\u540d\u79f0</div>';
+  var html = '<div class="ms-title">编辑自定义动作</div>';
+  html += '<div class="ms-label">动作名称</div>';
   html += '<input type="text" id="editActionName" value="'+escapeHtml(name)+'">';
-  html += '<div class="ms-label">emoji \u56fe\u6807</div>';
+  html += '<div class="ms-label">emoji 图标</div>';
   html += '<input type="text" id="editActionIcon" value="'+a.icon+'" maxlength="2" style="width:60px;text-align:center;font-size:20px">';
-  html += '<div class="ms-label">\u5355\u4f4d</div>';
+  html += '<div class="ms-label">单位</div>';
   html += '<input type="text" id="editActionUnit" value="'+escapeHtml(a.unit)+'">';
-  html += '<div class="ms-label">\u7c7b\u522b</div>';
+  html += '<div class="ms-label">类别</div>';
   html += '<select id="editActionCat" style="width:100%;background:var(--card);border:1px solid var(--sep);border-radius:var(--radius);padding:12px 14px;font-size:16px;color:var(--text);font-family:var(--font);margin-bottom:12px" onchange="updateEditActionColorPreview()">';
-  var cats = ['\u8fd0\u52a8','\u5b66\u4e60','\u996e\u98df','\u4f11\u606f','\u5de5\u4f5c','\u751f\u6d3b','\u793e\u4ea4','\u5065\u5eb7','\u79cd\u690d','\u5176\u4ed6'];
+  var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
   cats.forEach(function(c){ html += '<option value="'+c+'"'+(c===a.cat?' selected':'')+'>'+c+'</option>'; });
   html += '</select>';
-  html += '<div class="ms-label">\u5206\u7c7b\u989c\u8272\uff08\u53ef\u81ea\u5b9a\u4e49\uff09</div>';
+  html += '<div class="ms-label">分类颜色（可自定义）</div>';
   html += '<div class="color-picker-row" id="editActionColorPicker">';
   var presets = ['#FF9F0A','#BF5AF2','#FF375F','#40C8E0','#0A84FF','#FFD60A','#30D158','#FF6482','#FF453A','#8E8E93','#FF6B6B','#4ECDC4','#FCBAD3','#A8E6CF','#FFD93D','#FF8C42','#6BCB77','#FF6392','#4D96FF','#95E1D3'];
   var currentColor = (STATE.categoryColors && STATE.categoryColors[a.cat]) || getCatColor(a.cat);
@@ -3849,13 +3849,13 @@ function showEditActionForm(name){
   });
   html += '</div>';
   html += '<input type="hidden" id="editActionColor" value="'+currentColor+'">';
-  html += '<div class="ms-label">\u522b\u540d\uff08\u7528\u9017\u53f7\u5206\u9694\uff09</div>';
+  html += '<div class="ms-label">别名（用逗号分隔）</div>';
   html += '<input type="text" id="editActionAliases" value="'+escapeHtml((a.aliases||[]).join(','))+'">';
-  html += '<div class="ms-label">\u5355\u6b21\u65f6\u957f\uff08\u5206\u949f\uff09</div>';
+  html += '<div class="ms-label">单次时长（分钟）</div>';
   html += '<input type="number" id="editDuration" value="'+(a.durationPerTime||'')+'" style="width:80px">';
   html += '<div class="ms-actions">';
-  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">\u53d6\u6d88</button>';
-  html += '<button class="btn btn-primary" onclick="saveEditAction(\''+escapeHtml(name)+'\')">\u4fdd\u5b58</button>';
+  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">取消</button>';
+  html += '<button class="btn btn-primary" onclick="saveEditAction(\''+escapeHtml(name)+'\')">保存</button>';
   html += '</div>';
   document.getElementById('modalContent').innerHTML = html;
 }
@@ -3864,18 +3864,18 @@ function saveEditAction(oldName){
   var a = STATE.customActions[oldName];
   if(!a) return;
   var newName = document.getElementById('editActionName').value.trim();
-  var icon = document.getElementById('editActionIcon').value.trim() || '\u{1F4DD}';
-  var unit = document.getElementById('editActionUnit').value.trim() || '\u6b21';
+  var icon = document.getElementById('editActionIcon').value.trim() || '📝';
+  var unit = document.getElementById('editActionUnit').value.trim() || '次';
   var cat = document.getElementById('editActionCat').value;
   var aliasesText = document.getElementById('editActionAliases').value.trim();
   var actionColor = document.getElementById('editActionColor').value;
   var durationPerTime = parseFloat(document.getElementById('editDuration').value) || 0;
-  if(!newName){ showToast('\u8bf7\u8f93\u5165\u540d\u79f0'); return; }
+  if(!newName){ showToast('请输入名称'); return; }
   
   // If name changed, delete old and create new
   if(newName !== oldName){
     delete STATE.customActions[oldName];
-    var aliases = aliasesText ? aliasesText.split(/[,\uff0c]/).map(function(x){return x.trim()}).filter(function(x){return x}) : [];
+    var aliases = aliasesText ? aliasesText.split(/[,，]/).map(function(x){return x.trim()}).filter(function(x){return x}) : [];
     if(aliases.indexOf(newName) < 0) aliases.push(newName);
     STATE.customActions[newName] = {cat:cat, icon:icon, unit:unit, aliases:aliases, durationPerTime:durationPerTime};
   } else {
@@ -3883,7 +3883,7 @@ function saveEditAction(oldName){
     a.icon = icon;
     a.unit = unit;
     a.durationPerTime = durationPerTime;
-    a.aliases = aliasesText ? aliasesText.split(/[,\uff0c]/).map(function(x){return x.trim()}).filter(function(x){return x}) : [newName];
+    a.aliases = aliasesText ? aliasesText.split(/[,，]/).map(function(x){return x.trim()}).filter(function(x){return x}) : [newName];
     if(a.aliases.indexOf(newName) < 0) a.aliases.push(newName);
   }
   
@@ -3896,7 +3896,7 @@ function saveEditAction(oldName){
   rebuildAliasMap();
   saveState();
   openCustomMemoryLibrary();
-  showToast('\u5df2\u4fdd\u5b58\u4fee\u6539');
+  showToast('已保存修改');
 }
 
 
@@ -3947,14 +3947,14 @@ function deleteCustomActionBtn(el){
 }
 
 function showAddSubjectForm(){
-  var html = '<div class="ms-title">\u6dfb\u52a0\u81ea\u5b9a\u4e49\u4e3b\u4f53</div>';
-  html += '<div class="ms-label">\u4e3b\u4f53\u540d\u79f0</div>';
-  html += '<input type="text" id="newSubName" placeholder="\u5982\uff1a\u732b\u54aa">';
-  html += '<div class="ms-label">emoji \u56fe\u6807</div>';
-  html += '<input type="text" id="newSubEmoji" placeholder="\u{1F431}" maxlength="2" style="width:60px;text-align:center;font-size:20px">';
-  html += '<div class="ms-label">\u8bc6\u522b\u5173\u952e\u8bcd\uff08\u7528\u9017\u53f7\u5206\u9694\uff09</div>';
-  html += '<input type="text" id="newSubKeywords" placeholder="\u5982\uff1a\u732b,\u732b\u54aa,\u5c0f\u732b">';
-  html += '<div class="ms-label">\u989c\u8272\u6807\u6ce8</div>';
+  var html = '<div class="ms-title">添加自定义主体</div>';
+  html += '<div class="ms-label">主体名称</div>';
+  html += '<input type="text" id="newSubName" placeholder="如：猫咪">';
+  html += '<div class="ms-label">emoji 图标</div>';
+  html += '<input type="text" id="newSubEmoji" placeholder="🐱" maxlength="2" style="width:60px;text-align:center;font-size:20px">';
+  html += '<div class="ms-label">识别关键词（用逗号分隔）</div>';
+  html += '<input type="text" id="newSubKeywords" placeholder="如：猫,猫咪,小猫">';
+  html += '<div class="ms-label">颜色标注</div>';
   html += '<div class="color-picker-row" id="subColorPicker">';
   var presets = ['#FF9F0A','#BF5AF2','#FF375F','#40C8E0','#0A84FF','#FFD60A','#30D158','#FF6482','#FF453A','#8E8E93','#FF6B6B','#4ECDC4','#FCBAD3','#A8E6CF','#FFD93D','#FF8C42','#6BCB77','#FF6392','#4D96FF','#95E1D3'];
   presets.forEach(function(col, i){
@@ -3963,19 +3963,19 @@ function showAddSubjectForm(){
   html += '</div>';
   html += '<input type="hidden" id="newSubColor" value="#30D158">';
   html += '<div class="ms-actions">';
-  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">\u53d6\u6d88</button>';
-  html += '<button class="btn btn-primary" onclick="saveNewSubject()">\u6dfb\u52a0</button>';
+  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">取消</button>';
+  html += '<button class="btn btn-primary" onclick="saveNewSubject()">添加</button>';
   html += '</div>';
   document.getElementById('modalContent').innerHTML = html;
 }
 
 function saveNewSubject(){
   var name = document.getElementById('newSubName').value.trim();
-  var emoji = document.getElementById('newSubEmoji').value.trim() || '\u{1F431}';
+  var emoji = document.getElementById('newSubEmoji').value.trim() || '🐱';
   var keywordsText = document.getElementById('newSubKeywords').value.trim();
   var color = document.getElementById('newSubColor').value || '#30D158';
-  if(!name){ showToast('\u8bf7\u8f93\u5165\u4e3b\u4f53\u540d\u79f0'); return; }
-  var keywords = keywordsText ? keywordsText.split(/[,\uff0c]/).map(function(a){return a.trim()}).filter(function(a){return a}) : [];
+  if(!name){ showToast('请输入主体名称'); return; }
+  var keywords = keywordsText ? keywordsText.split(/[,，]/).map(function(a){return a.trim()}).filter(function(a){return a}) : [];
   if(keywords.length === 0) keywords = [name];
   var id = 'cs_' + (STATE.customSubjects.length + 1) + '_' + Date.now();
   STATE.customSubjects.push({
@@ -3988,7 +3988,7 @@ function saveNewSubject(){
   saveState();
   openCustomMemoryLibrary();
   renderSubjectBar();
-  showToast('\u5df2\u6dfb\u52a0\u4e3b\u4f53\uff1a'+name);
+  showToast('已添加主体：'+name);
 }
 
 function deleteCustomSubject(id){
@@ -4000,19 +4000,19 @@ function deleteCustomSubject(id){
 }
 
 function showAddActionForm(){
-  var html = '<div class="ms-title">\u6dfb\u52a0\u81ea\u5b9a\u4e49\u52a8\u4f5c</div>';
-  html += '<div class="ms-label">\u52a8\u4f5c\u540d\u79f0</div>';
-  html += '<input type="text" id="newActionName" placeholder="\u5982\uff1a\u6c99\u6f0f\u8170">';
-  html += '<div class="ms-label">emoji \u56fe\u6807</div>';
-  html += '<input type="text" id="newActionIcon" placeholder="\u{1F4AA}" maxlength="2" style="width:60px;text-align:center;font-size:20px">';
-  html += '<div class="ms-label">\u5355\u4f4d</div>';
-  html += '<input type="text" id="newActionUnit" placeholder="\u6b21" value="\u6b21">';
-  html += '<div class="ms-label">\u7c7b\u522b</div>';
+  var html = '<div class="ms-title">添加自定义动作</div>';
+  html += '<div class="ms-label">动作名称</div>';
+  html += '<input type="text" id="newActionName" placeholder="如：沙漏腰">';
+  html += '<div class="ms-label">emoji 图标</div>';
+  html += '<input type="text" id="newActionIcon" placeholder="💪" maxlength="2" style="width:60px;text-align:center;font-size:20px">';
+  html += '<div class="ms-label">单位</div>';
+  html += '<input type="text" id="newActionUnit" placeholder="次" value="次">';
+  html += '<div class="ms-label">类别</div>';
   html += '<select id="newActionCat" style="width:100%;background:var(--card);border:1px solid var(--sep);border-radius:var(--radius);padding:12px 14px;font-size:16px;color:var(--text);font-family:var(--font);margin-bottom:12px" onchange="updateActionColorPreview()">';
-  var cats3 = ['\u8fd0\u52a8','\u5b66\u4e60','\u996e\u98df','\u4f11\u606f','\u5de5\u4f5c','\u751f\u6d3b','\u793e\u4ea4','\u5065\u5eb7','\u79cd\u690d','\u5176\u4ed6'];
+  var cats3 = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
   cats3.forEach(function(c){ html += '<option value="'+c+'">'+c+'</option>'; });
   html += '</select>';
-  html += '<div class="ms-label">\u5206\u7c7b\u989c\u8272\uff08\u53ef\u81ea\u5b9a\u4e49\uff09</div>';
+  html += '<div class="ms-label">分类颜色（可自定义）</div>';
   html += '<div class="color-picker-row" id="actionColorPicker">';
   var presets = ['#FF9F0A','#BF5AF2','#FF375F','#40C8E0','#0A84FF','#FFD60A','#30D158','#FF6482','#FF453A','#8E8E93','#FF6B6B','#4ECDC4','#FCBAD3','#A8E6CF','#FFD93D','#FF8C42','#6BCB77','#FF6392','#4D96FF','#95E1D3'];
   presets.forEach(function(col, i){
@@ -4020,14 +4020,14 @@ function showAddActionForm(){
   });
   html += '</div>';
   html += '<input type="hidden" id="newActionColor" value="#FF9F0A">';
-  html += '<div class="ms-label">\u522b\u540d\uff08\u7528\u9017\u53f7\u5206\u9694\uff0c\u7528\u4e8e\u8bed\u97f3\u8bc6\u522b\u5339\u914d\uff09</div>';
-  html += '<input type="text" id="newActionAliases" placeholder="\u5982\uff1a\u6c99\u6f0f\u8170,\u7626\u8170">';
-  html += '<div class="ms-label">\u5355\u6b21\u65f6\u957f\uff08\u5206\u949f\uff0c\u6309\u6b21\u6570\u8ba1\u7684\u53ef\u9009\u586b\uff09</div>';
-  html += '<input type="number" id="newDuration" placeholder="\u5982\uff1a30" style="width:80px" value="">';
-  html += '<div style="font-size:11px;color:var(--text4);margin-top:-8px;margin-bottom:12px">\u6309\u5206\u949f\u8ba1\u7b97\u7684\u8fd0\u52a8\u586b\u5199\u5355\u6b21\u65f6\u957f\uff0c\u6309\u4e2a\u6570\u8ba1\u7b97\u7684\u53ef\u7559\u7a7a</div>';
+  html += '<div class="ms-label">别名（用逗号分隔，用于语音识别匹配）</div>';
+  html += '<input type="text" id="newActionAliases" placeholder="如：沙漏腰,瘦腰">';
+  html += '<div class="ms-label">单次时长（分钟，按次数计的可选填）</div>';
+  html += '<input type="number" id="newDuration" placeholder="如：30" style="width:80px" value="">';
+  html += '<div style="font-size:11px;color:var(--text4);margin-top:-8px;margin-bottom:12px">按分钟计算的运动填写单次时长，按个数计算的可留空</div>';
   html += '<div class="ms-actions">';
-  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">\u53d6\u6d88</button>';
-  html += '<button class="btn btn-primary" onclick="saveNewAction()">\u6dfb\u52a0</button>';
+  html += '<button class="btn btn-cancel" onclick="openCustomMemoryLibrary()">取消</button>';
+  html += '<button class="btn btn-primary" onclick="saveNewAction()">添加</button>';
   html += '</div>';
   document.getElementById('modalContent').innerHTML = html;
   updateActionColorPreview();
@@ -4035,13 +4035,13 @@ function showAddActionForm(){
 
 function saveNewAction(){
   var name = document.getElementById('newActionName').value.trim();
-  var icon = document.getElementById('newActionIcon').value.trim() || '\u{1F4DD}';
-  var unit = document.getElementById('newActionUnit').value.trim() || '\u6b21';
+  var icon = document.getElementById('newActionIcon').value.trim() || '📝';
+  var unit = document.getElementById('newActionUnit').value.trim() || '次';
   var cat = document.getElementById('newActionCat').value;
   var aliasesText = document.getElementById('newActionAliases').value.trim();
   var actionColor = document.getElementById('newActionColor').value;
-  if(!name){ showToast('\u8bf7\u8f93\u5165\u52a8\u4f5c\u540d\u79f0'); return; }
-  var aliases = aliasesText ? aliasesText.split(/[,\uff0c]/).map(function(a){return a.trim()}).filter(function(a){return a}) : [];
+  if(!name){ showToast('请输入动作名称'); return; }
+  var aliases = aliasesText ? aliasesText.split(/[,，]/).map(function(a){return a.trim()}).filter(function(a){return a}) : [];
   if(aliases.indexOf(name) < 0) aliases.push(name);
   var durationPerTime = document.getElementById('unkDuration') ? (parseFloat(document.getElementById('unkDuration').value) || 0) : 0;
   STATE.customActions[name] = {cat:cat, icon:icon, unit:unit, aliases:aliases, durationPerTime:durationPerTime};
@@ -4054,7 +4054,7 @@ function saveNewAction(){
   rebuildAliasMap();
   saveState();
   openCustomMemoryLibrary();
-  showToast('\u5df2\u6dfb\u52a0\u52a8\u4f5c\uff1a'+name);
+  showToast('已添加动作：'+name);
 }
 
 function deleteCustomAction(name){
@@ -4209,7 +4209,7 @@ function renderTimeline(){
   }
   
   if(records.length === 0){
-    container.innerHTML = '<div class="empty"><div class="emoji">\u{1F4C5}</div><div class="text">\u65f6\u95f4\u7ebf\u8fd8\u662f\u7a7a\u7684</div></div>';
+    container.innerHTML = '<div class="empty"><div class="emoji">📅</div><div class="text">时间线还是空的</div></div>';
     return;
   }
   
@@ -4227,25 +4227,25 @@ function renderTimeline(){
   if(isMulti){
     var selCount = Object.keys(selIds).filter(function(k){return selIds[k]}).length;
     html += '<div class="tl-multiselect-bar">' +
-      '<div class="ms-count">\u5df2\u9009 '+selCount+' \u6761</div>' +
+      '<div class="ms-count">已选 '+selCount+' 条</div>' +
       '<div class="ms-actions">' +
-        '<button class="ms-btn cancel" onclick="exitMultiSelect()">\u53d6\u6d88</button>' +
-        '<button class="ms-btn delete" onclick="deleteSelectedRecords()">\u5220\u9664\u9009\u4e2d</button>' +
+        '<button class="ms-btn cancel" onclick="exitMultiSelect()">取消</button>' +
+        '<button class="ms-btn delete" onclick="deleteSelectedRecords()">删除选中</button>' +
       '</div></div>';
   }
   
   Object.keys(grouped).forEach(function(date){
     var recs = grouped[date];
-    html += '<div class="tl-date-group"><div class="tl-date">'+date+'<span class="count">'+recs.length+'\u6761</span></div>';
+    html += '<div class="tl-date-group"><div class="tl-date">'+date+'<span class="count">'+recs.length+'条</span></div>';
     recs.forEach(function(r){
-      var sub = getSubject(r.subject) || {emoji:'\u{1F64B}',name:'\u6211',color:'#30D158'};
+      var sub = getSubject(r.subject) || {emoji:'🙋',name:'我',color:'#30D158'};
       r.actions.forEach(function(a, i){
         var customAct = STATE.customActions[a.standardName];
         var hasDuration = customAct && customAct.durationPerTime > 0;
         var qtyDisplay = '';
         if(hasDuration){
-          qtyDisplay = '<span class="num">'+a.quantity+'</span><span class="u">\u6b21</span>';
-          qtyDisplay += '<span style="font-size:11px;color:var(--text4);margin-left:4px">'+a.quantity*customAct.durationPerTime+'\u5206\u949f</span>';
+          qtyDisplay = '<span class="num">'+a.quantity+'</span><span class="u">次</span>';
+          qtyDisplay += '<span style="font-size:11px;color:var(--text4);margin-left:4px">'+a.quantity*customAct.durationPerTime+'分钟</span>';
         } else if(a.quantity > 0){
           qtyDisplay = a.quantity+'<span class="u">'+a.unit+'</span>';
         }
@@ -4253,17 +4253,17 @@ function renderTimeline(){
         var catColor = getCatColor(a.category);
         var isSelected = selIds[r.id];
         var checkboxHtml = isMulti ? '<div class="rr-checkbox'+(isSelected?' checked':'')+'"></div>' : '';
-        var notesHtml = r.notes ? '<div class="rr-notes">\u{1F4DD} '+escapeHtml(r.notes)+'</div>' : '';
+        var notesHtml = r.notes ? '<div class="rr-notes">📝 '+escapeHtml(r.notes)+'</div>' : '';
         var clickHandler = isMulti ? 'toggleSelectRecord(\''+r.id+'\')' : 'editRecordDate(\''+r.id+'\')';
         
         html += '<div class="tl-row-wrapper">' +
-          '<div class="tl-delete-bg" onclick="event.stopPropagation();swipeDeleteRecord(\''+r.id+'\')">\u5220\u9664</div>' +
+          '<div class="tl-delete-bg" onclick="event.stopPropagation();swipeDeleteRecord(\''+r.id+'\')">删除</div>' +
           '<div class="record-row tl-row-swipe" style="margin-bottom:6px;cursor:pointer" ' +
             'data-record-id="'+r.id+'" onclick="'+clickHandler+'">' +
             checkboxHtml +
             '<div class="rr-icon" style="background:'+catColor+'22;width:32px;height:32px;font-size:15px;border-radius:8px">'+a.icon+'</div>' +
             '<div class="rr-body"><div class="rr-text" style="font-size:14px">'+escapeHtml(a.standardName)+'</div>' +
-            '<div class="rr-meta"><span>'+r.time.substring(0,5)+'</span><span>\u00b7</span><span style="color:'+sub.color+'">'+sub.name+'</span><span>\u00b7</span><span class="cal-cat-color-dot" style="background:'+catColor+'"></span><span style="color:'+catColor+'">'+a.category+'</span></div>' +
+            '<div class="rr-meta"><span>'+r.time.substring(0,5)+'</span><span>·</span><span style="color:'+sub.color+'">'+sub.name+'</span><span>·</span><span class="cal-cat-color-dot" style="background:'+catColor+'"></span><span style="color:'+catColor+'">'+a.category+'</span></div>' +
             notesHtml +
             '</div>' +
             (qtyDisplay ? '<div class="rr-qty">'+qtyDisplay+'</div>' : '') +
@@ -4398,7 +4398,7 @@ function toggleSelectRecord(id){
 
 function deleteSelectedRecords(){
   var ids = Object.keys(STATE.tlSelectedIds || {}).filter(function(k){return STATE.tlSelectedIds[k]});
-  if(ids.length === 0){ showToast('\u8bf7\u9009\u62e9\u8981\u5220\u9664\u7684\u8bb0\u5f55'); return; }
+  if(ids.length === 0){ showToast('请选择要删除的记录'); return; }
   STATE.records = STATE.records.filter(function(r){return !STATE.tlSelectedIds[r.id]});
   saveState();
   STATE.tlMultiSelect = false;
@@ -4408,7 +4408,7 @@ function deleteSelectedRecords(){
   renderSubjectDiaries();
   renderStats();
   renderAchievements();
-  showToast('\u5df2\u5220\u9664 '+ids.length+' \u6761\u8bb0\u5f55');
+  showToast('已删除 '+ids.length+' 条记录');
 }
 
 // ===== 渲染 - 统计 =====
@@ -5270,7 +5270,7 @@ function checkAchievements(){
 function editRecordDate(recordId){
   var record = STATE.records.find(function(r){return r.id === recordId});
   if(!record) return;
-  var html = '<div class="ms-title">\u4fee\u6539\u8bb0\u5f55</div>';
+  var html = '<div class="ms-title">修改记录</div>';
   
   // Show actions summary
   record.actions.forEach(function(a){
@@ -5278,17 +5278,17 @@ function editRecordDate(recordId){
     html += '<div style="background:var(--card);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px">';
     html += '<div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:'+catColor+'22">'+a.icon+'</div>';
     html += '<div style="flex:1"><div style="font-size:14px;font-weight:600">'+escapeHtml(a.standardName)+'</div>';
-    html += '<div style="font-size:11px;color:var(--text4)"><span class="cal-cat-color-dot" style="background:'+catColor+'"></span>'+a.category+(a.quantity>0?' \u00b7 '+a.quantity+a.unit:'')+'</div></div></div>';
+    html += '<div style="font-size:11px;color:var(--text4)"><span class="cal-cat-color-dot" style="background:'+catColor+'"></span>'+a.category+(a.quantity>0?' · '+a.quantity+a.unit:'')+'</div></div></div>';
   });
   
-  html += '<div class="ms-label">\u65e5\u671f</div>';
+  html += '<div class="ms-label">日期</div>';
   html += '<input type="date" id="newRecordDate" value="'+record.date+'">';
-  html += '<div class="ms-label">\u5907\u6ce8</div>';
-  html += '<textarea id="newRecordNotes" placeholder="\u6dfb\u52a0\u5907\u6ce8..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
+  html += '<div class="ms-label">备注</div>';
+  html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
   html += '<div class="ms-actions">';
-  html += '<button class="btn btn-cancel" onclick="closeModal()">\u53d6\u6d88</button>';
-  html += '<button class="btn" style="background:var(--red);color:#fff" onclick="deleteRecord(\''+recordId+'\');closeModal()">\u5220\u9664\u8bb0\u5f55</button>';
-  html += '<button class="btn btn-primary" onclick="saveRecordDate(\''+recordId+'\')">\u4fdd\u5b58</button>';
+  html += '<button class="btn btn-cancel" onclick="closeModal()">取消</button>';
+  html += '<button class="btn" style="background:var(--red);color:#fff" onclick="deleteRecord(\''+recordId+'\');closeModal()">删除记录</button>';
+  html += '<button class="btn btn-primary" onclick="saveRecordDate(\''+recordId+'\')">保存</button>';
   html += '</div>';
   document.getElementById('modalContent').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
@@ -5299,7 +5299,7 @@ function saveRecordDate(recordId){
   if(!record) return;
   var newDate = document.getElementById('newRecordDate').value;
   var newNotes = document.getElementById('newRecordNotes').value.trim();
-  if(!newDate){ showToast('\u8bf7\u9009\u62e9\u65e5\u671f'); return; }
+  if(!newDate){ showToast('请选择日期'); return; }
   record.date = newDate;
   record.notes = newNotes;
   var parts = newDate.split('-');
@@ -5311,7 +5311,7 @@ function saveRecordDate(recordId){
   renderTodayOverview();
   renderSubjectDiaries();
   renderStats();
-  showToast('\u5df2\u4fdd\u5b58');
+  showToast('已保存');
 }
 
 // ===== 删除记录 =====
@@ -5324,7 +5324,7 @@ function deleteRecord(id){
   renderStats();
   renderCalendar();
   renderAchievements();
-  showToast('\u5df2\u5220\u9664');
+  showToast('已删除');
 }
 
 // ===== 设置页面 =====
@@ -5636,7 +5636,7 @@ function saveManualAdd(){
   renderCalendar();
   checkAchievements();
   showEncouragement();
-  showToast('\u8bb0\u5f55\u6210\u529f \u2713');
+  showToast('记录成功 ✓');
 }
 
 // ===== 记忆库下拉菜单 =====
@@ -5742,13 +5742,13 @@ function shortDate(dateStr){
   if(!dateStr) return '';
   var parts = dateStr.split('-');
   if(parts.length < 3) return dateStr;
-  return parseInt(parts[1])+'\u6708'+parseInt(parts[2])+'\u65e5';
+  return parseInt(parts[1])+'月'+parseInt(parts[2])+'日';
 }
 
 function escapeHtml(t){var d=document.createElement('div');d.textContent=t;return d.innerHTML}
 function getCatColor(cat){
   if(STATE.categoryColors && STATE.categoryColors[cat]) return STATE.categoryColors[cat];
-  var m = {'\u8fd0\u52a8':'#FF9F0A','\u5b66\u4e60':'#BF5AF2','\u996e\u98df':'#FF375F','\u4f11\u606f':'#40C8E0','\u5de5\u4f5c':'#0A84FF','\u751f\u6d3b':'#FFD60A','\u793e\u4ea4':'#30D158','\u5065\u5eb7':'#FF6482','\u5176\u4ed6':'#8E8E93'};
+  var m = {'运动':'#FF9F0A','学习':'#BF5AF2','饮食':'#FF375F','休息':'#40C8E0','工作':'#0A84FF','生活':'#FFD60A','社交':'#30D158','健康':'#FF6482','其他':'#8E8E93'};
   return m[cat] || '#8E8E93';
 }
 function calculateStreak(dateSet){
@@ -5824,7 +5824,7 @@ function renderCalendar(){
   var year = calCurrentMonth.getFullYear();
   var month = calCurrentMonth.getMonth();
   
-  if(label) label.textContent = year+'\u5e74'+(month+1)+'\u6708';
+  if(label) label.textContent = year+'年'+(month+1)+'月';
   
   // Update filter dropdowns
   updateCalFilters();
@@ -5884,7 +5884,7 @@ function renderCalendar(){
       }).join('');
     }
     
-    var countHtml = dayRecords.length > 0 ? '<div class="cal-day-count">'+dayRecords.length+'\u6761</div>' : '';
+    var countHtml = dayRecords.length > 0 ? '<div class="cal-day-count">'+dayRecords.length+'条</div>' : '';
     html += '<div class="cal-day'+(isToday?' today':'')+(isSelected?' selected':'')+'" onclick="selectCalDay(\''+dateStr+'\')">' +
       '<div class="cal-day-num">'+d+'</div>' +
       '<div class="cal-day-dots">'+dotsHtml+'</div>' +
@@ -5920,22 +5920,22 @@ function selectCalDay(dateStr){
   }
   
   if(records.length === 0){
-    detail.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text4)">'+shortDate(dateStr)+' \u6ca1\u6709\u8bb0\u5f55</div>';
+    detail.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text4)">'+shortDate(dateStr)+' 没有记录</div>';
     return;
   }
   
-  var html = '<div class="cal-day-detail-title">'+shortDate(dateStr)+' ('+records.length+'\u6761)</div>';
+  var html = '<div class="cal-day-detail-title">'+shortDate(dateStr)+' ('+records.length+'条)</div>';
   records.forEach(function(r){
-    var sub = getSubject(r.subject) || {emoji:'\u{1F64B}',name:'\u6211',color:'#30D158'};
+    var sub = getSubject(r.subject) || {emoji:'🙋',name:'我',color:'#30D158'};
     r.actions.forEach(function(a){
       var catColor = getCatColor(a.category);
       var qtyStr = a.quantity > 0 ? '<div style="font-size:14px;font-weight:700;color:var(--green)">'+a.quantity+'<span style="font-size:11px;color:var(--text3);font-weight:400">'+a.unit+'</span></div>' : '';
-      var notesStr = r.notes ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">\u{1F4DD} '+escapeHtml(r.notes)+'</div>' : '';
+      var notesStr = r.notes ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">📝 '+escapeHtml(r.notes)+'</div>' : '';
       html += '<div class="cal-day-item">' +
         '<div style="width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;background:'+catColor+'22">'+a.icon+'</div>' +
         '<div style="flex:1;min-width:0">' +
           '<div style="font-size:13px;font-weight:600">'+escapeHtml(a.standardName)+'</div>' +
-          '<div style="font-size:11px;color:var(--text4)">'+r.time.substring(0,5)+' \u00b7 '+sub.name+' \u00b7 <span class="cal-cat-color-dot" style="background:'+catColor+'"></span><span style="color:'+catColor+'">'+a.category+'</span></div>' +
+          '<div style="font-size:11px;color:var(--text4)">'+r.time.substring(0,5)+' · '+sub.name+' · <span class="cal-cat-color-dot" style="background:'+catColor+'"></span><span style="color:'+catColor+'">'+a.category+'</span></div>' +
           notesStr +
         '</div>' +
         qtyStr +
@@ -5964,7 +5964,7 @@ function updateCalFilters(){
   var currentCat = catFilter.value || 'all';
   
   // Build subject options
-  var subHtml = '<option value="all">\u5168\u90e8\u4e3b\u4f53</option>';
+  var subHtml = '<option value="all">全部主体</option>';
   STATE.subjects.forEach(function(s){
     subHtml += '<option value="'+s.id+'">'+s.emoji+' '+escapeHtml(s.name)+'</option>';
   });
@@ -5975,8 +5975,8 @@ function updateCalFilters(){
   subFilter.value = currentSub;
   
   // Build category options with color dots
-  var cats = ['\u8fd0\u52a8','\u5b66\u4e60','\u996e\u98df','\u4f11\u606f','\u5de5\u4f5c','\u751f\u6d3b','\u793e\u4ea4','\u5065\u5eb7','\u79cd\u690d','\u5176\u4ed6'];
-  var catHtml = '<option value="all">\u5168\u90e8\u5206\u7c7b</option>';
+  var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
+  var catHtml = '<option value="all">全部分类</option>';
   cats.forEach(function(c){
     catHtml += '<option value="'+c+'">'+c+'</option>';
   });
