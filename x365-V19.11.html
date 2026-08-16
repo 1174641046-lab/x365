@@ -464,7 +464,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .tl-row-wrapper.show-left .tl-actions-left{opacity:1}
 .tl-row-wrapper.show-right .tl-actions-right{opacity:1}
 .tl-swiper{position:relative;background:var(--card);width:100%;transition:transform .2s ease;will-change:transform;touch-action:pan-y;z-index:1}
-.tl-swiper.swiped-left{transform:translateX(-156px)}
+.tl-swiper.swiped-left{transform:translateX(-80px)}
 .tl-swiper.swiped-right{transform:translateX(80px)}
 .tl-btn{height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px;color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 .tl-btn svg{width:16px;height:16px}
@@ -735,7 +735,35 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
     <div class="settings-list">
       <div class="settings-group">
+        <div class="settings-group-title">个人信息</div>
+        <div class="settings-item" onclick="changeUserAvatar()">
+          <div class="settings-item-icon" id="userAvatarDisplay" style="font-size:20px">🙋</div>
+          <div class="settings-item-body">
+            <div class="settings-item-name">更换头像</div>
+            <div class="settings-item-desc">点击选择新的Emoji头像</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+        <div class="settings-item" onclick="changeUserName()">
+          <div class="settings-item-icon">📝</div>
+          <div class="settings-item-body">
+            <div class="settings-item-name">修改名字</div>
+            <div class="settings-item-desc" id="userNameDisplay">我</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+      </div>
+
+      <div class="settings-group">
         <div class="settings-group-title">数据管理</div>
+        <div class="settings-item" onclick="openRecycleBin()">
+          <div class="settings-item-icon" style="color:var(--red)">🗑️</div>
+          <div class="settings-item-body">
+            <div class="settings-item-name">回收站</div>
+            <div class="settings-item-desc">恢复或永久删除已移除的记录</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
         <div class="settings-item" onclick="exportData()">
           <div class="settings-item-icon">📤</div>
           <div class="settings-item-body">
@@ -2176,7 +2204,8 @@ var STATE = {
   categoryColors: {},
   tlSearch: '',
   tlMultiSelect: false,
-  tlSelectedIds: {}
+  tlSelectedIds: {},
+  recycleBin: []
 };
 
 var STORAGE_KEY = 'weixiaoji_v19_11';
@@ -2194,6 +2223,7 @@ function loadState(){
       if(data.customActionId !== undefined) STATE.customActionId = data.customActionId;
       if(data.reminders) STATE.reminders = data.reminders;
       if(data.categoryColors) STATE.categoryColors = data.categoryColors;
+      if(data.recycleBin) STATE.recycleBin = data.recycleBin;
       // 迁移旧版本数据
       migrateV1();
     }else{
@@ -2903,6 +2933,8 @@ function migrateV1(){
 
 function saveState(){
   try{
+    // Clean up old recycled records (older than 7 days)
+    cleanupRecycleBin();
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       records: STATE.records,
       subjects: STATE.subjects,
@@ -2911,7 +2943,8 @@ function saveState(){
       customActions: STATE.customActions,
       customActionId: STATE.customActionId,
       reminders: STATE.reminders,
-      categoryColors: STATE.categoryColors
+      categoryColors: STATE.categoryColors,
+      recycleBin: STATE.recycleBin
     }));
   }catch(e){ console.warn('save error',e); }
 }
@@ -5354,7 +5387,7 @@ function editRecordDate(recordId){
   var sub = getSubject(record.subject);
   var catColor = getCatColor(a.category);
   
-  var html = '<div class="ms-title">修改记录</div>';
+  var html = '<div class="ms-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">修改记录<div onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)">✕</div></div>';
   
   // Action preview card
   html += '<div style="background:var(--card);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px">';
@@ -5413,7 +5446,6 @@ function editRecordDate(recordId){
   html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
   
   html += '<div class="ms-actions">';
-  html += '<button class="btn btn-cancel" onclick="closeModal()">取消</button>';
   html += '<button class="btn" style="background:var(--red);color:#fff" onclick="deleteRecord(\''+recordId+'\');closeModal()">删除记录</button>';
   html += '<button class="btn btn-primary" onclick="saveRecordEdit(\''+recordId+'\')">保存</button>';
   html += '</div>';
@@ -5504,21 +5536,131 @@ function deleteRecord(id){
   showToast('已删除');
 }
 
+// ===== 删除记录（进入回收站） =====
+function deleteRecord(id){
+  var record = STATE.records.find(function(r){return r.id === id});
+  if(record){
+    record.deletedAt = Date.now();
+    STATE.recycleBin.push(record);
+  }
+  STATE.records = STATE.records.filter(function(r){return r.id !== id});
+  saveState();
+  renderTodayOverview();
+  renderSubjectDiaries();
+  renderTimeline();
+  renderStats();
+  renderCalendar();
+  renderAchievements();
+  showToast('已移至回收站');
+}
+
+// ===== 回收站：7天自动清理 =====
+function cleanupRecycleBin(){
+  if(!STATE.recycleBin || !STATE.recycleBin.length) return;
+  var sevenDays = 7 * 24 * 60 * 60 * 1000;
+  var now = Date.now();
+  var before = STATE.recycleBin.length;
+  STATE.recycleBin = STATE.recycleBin.filter(function(r){
+    return (now - (r.deletedAt || 0)) < sevenDays;
+  });
+  var removed = before - STATE.recycleBin.length;
+  if(removed > 0) console.log('回收站清理：移除 '+removed+' 条过期记录');
+}
+
+// ===== 打开回收站 =====
+function openRecycleBin(){
+  cleanupRecycleBin();
+  var html = '<div class="ms-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">回收站<div onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)">✕</div></div>';
+  
+  if(!STATE.recycleBin || STATE.recycleBin.length === 0){
+    html += '<div style="text-align:center;color:var(--text4);padding:40px 0">回收站为空</div>';
+  } else {
+    html += '<div style="font-size:12px;color:var(--text4);margin-bottom:12px">共 '+STATE.recycleBin.length+' 条 · 7天后自动清除</div>';
+    
+    // Group by date
+    var byDate = {};
+    STATE.recycleBin.forEach(function(r){
+      if(!byDate[r.date]) byDate[r.date] = [];
+      byDate[r.date].push(r);
+    });
+    var dates = Object.keys(byDate).sort().reverse();
+    
+    dates.forEach(function(date){
+      html += '<div style="font-size:12px;color:var(--text4);margin:12px 0 8px">'+date+'</div>';
+      byDate[date].forEach(function(r){
+        var a = r.actions[0];
+        var sub = getSubject(r.subject);
+        var catColor = getCatColor(a.category);
+        var daysLeft = Math.max(0, Math.ceil((7 * 24 * 60 * 60 * 1000 - (Date.now() - (r.deletedAt || 0))) / 86400000));
+        
+        html += '<div style="background:var(--card);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px">';
+        html += '<div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:'+catColor+'22">'+a.icon+'</div>';
+        html += '<div style="flex:1"><div style="font-size:14px;font-weight:600">'+escapeHtml(a.standardName)+'</div>';
+        html += '<div style="font-size:11px;color:var(--text4)">'+r.time+' · '+sub.name+' · '+a.category+'</div></div>';
+        html += '<div style="display:flex;gap:6px">';
+        html += '<button onclick="restoreRecord(\''+r.id+'\')" style="padding:4px 10px;border-radius:8px;border:none;background:var(--green-bg);color:var(--green);font-size:12px;cursor:pointer">恢复</button>';
+        html += '<button onclick="permanentDeleteRecord(\''+r.id+'\')" style="padding:4px 10px;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:12px;cursor:pointer">删除</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div style="font-size:10px;color:var(--text4);margin-bottom:4px">'+daysLeft+'天后自动清除</div>';
+      });
+    });
+  }
+  
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+// ===== 恢复记录 =====
+function restoreRecord(id){
+  var idx = STATE.recycleBin.findIndex(function(r){return r.id === id});
+  if(idx === -1){ showToast('记录不存在'); return; }
+  var record = STATE.recycleBin[idx];
+  delete record.deletedAt;
+  STATE.records.push(record);
+  STATE.recycleBin.splice(idx, 1);
+  saveState();
+  renderTimeline();
+  renderTodayOverview();
+  renderSubjectDiaries();
+  renderStats();
+  renderCalendar();
+  renderAchievements();
+  openRecycleBin(); // Refresh modal
+  showToast('已恢复');
+}
+
+// ===== 永久删除 =====
+function permanentDeleteRecord(id){
+  STATE.recycleBin = STATE.recycleBin.filter(function(r){return r.id !== id});
+  saveState();
+  openRecycleBin(); // Refresh modal
+  showToast('已永久删除');
+}
+
 // ===== 设置页面 =====
 function renderSettings(){
-  // 设置页面由静态HTML渲染
+  // 更新设置页面上的用户信息
+  var userSub = STATE.subjects.find(function(s){return s.id === 'user'});
+  if(userSub){
+    var avatarEl = document.getElementById('userAvatarDisplay');
+    var nameEl = document.getElementById('userNameDisplay');
+    if(avatarEl) avatarEl.textContent = userSub.emoji;
+    if(nameEl) nameEl.textContent = userSub.name;
+  }
 }
 
 function exportData(){
   var data = {
-    version: 'V13.1',
+    version: 'V19.11',
     exportDate: new Date().toISOString(),
     records: STATE.records,
     subjects: STATE.subjects,
     customSubjects: STATE.customSubjects,
     customActions: STATE.customActions,
     customActionId: STATE.customActionId,
-    unlockedAch: STATE.unlockedAch
+    unlockedAch: STATE.unlockedAch,
+    recycleBin: STATE.recycleBin
   };
   var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
   var url = URL.createObjectURL(blob);
@@ -6159,6 +6301,68 @@ function updateCalFilters(){
   });
   catFilter.innerHTML = catHtml;
   catFilter.value = currentCat;
+}
+
+function changeUserAvatar(){
+  var avatars = ['🙋','🙂','😎','🤠','👩','👨','🧑','👧','👦','🧒','👶','🧓','👴','👵','👮','👷','💂','🕵️','👩‍⚕️','👨‍⚕️','👩‍🌾','👨‍🌾','👩‍🍳','👨‍🍳','👩‍🎓','👨‍🎓','👩‍🎤','👨‍🎤','👩‍🏫','👨‍🏫','👩‍🏭','👨‍🏭','👩‍💻','👨‍💻','👩‍💼','👨‍💼','👩‍🔧','👨‍🔧','👩‍🔬','👨‍🔬','👩‍🎨','👨‍🎨','👩‍🚒','👨‍🚒','👩‍✈️','👨‍✈️','👩‍🚀','👨‍🚀','👩‍⚖️','👨‍⚖️','👰','🤵','🦸','🦹','🧙','🧚','🧛','🧜','🧝','🧞','🧟','💆','💇','🚶','🏃','💃','🕺','🏋️','🤸','⛹️','🤺','🤼','🤽','🤾','🤹','🧘','🛀','🛌','🧑‍🦯','🧑‍🦼','🧑‍🦽'];
+  
+  var userSub = STATE.subjects.find(function(s){return s.id === 'user'});
+  var currentEmoji = userSub ? userSub.emoji : '🙋';
+  
+  var html = '<div class="ms-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">选择头像<div onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)">✕</div></div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">';
+  avatars.forEach(function(emoji){
+    var active = emoji === currentEmoji ? 'border-color:var(--green-dim);background:var(--green-bg)' : 'border-color:transparent;background:var(--card2)';
+    html += '<div onclick="saveUserAvatar(\''+emoji+'\')" style="width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:2px solid '+active.split(';')[0].split(':')[1]+';background:'+active.split(';')[1].split(':')[1]+';transition:all .15s">'+emoji+'</div>';
+  });
+  html += '</div>';
+  
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function saveUserAvatar(emoji){
+  var userSub = STATE.subjects.find(function(s){return s.id === 'user'});
+  if(userSub){
+    userSub.emoji = emoji;
+    saveState();
+    renderSubjectBar();
+    renderTodayOverview();
+    renderSubjectDiaries();
+    renderCalendar();
+    renderSettings(); // Re-render settings to update avatar display
+    closeModal();
+    showToast('头像已更新');
+  }
+}
+
+function changeUserName(){
+  var userSub = STATE.subjects.find(function(s){return s.id === 'user'});
+  var currentName = userSub ? userSub.name : '我';
+  
+  var html = '<div class="ms-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">修改名字<div onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)">✕</div></div>';
+  html += '<input type="text" id="newUserNameInput" value="'+escapeHtml(currentName)+'" placeholder="你的名字" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:16px;outline:none;margin-bottom:16px">';
+  html += '<button class="btn btn-primary" style="width:100%" onclick="saveEditedUserName()">保存</button>';
+  
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function saveEditedUserName(){
+  var name = document.getElementById('newUserNameInput').value.trim();
+  if(!name){ showToast('请输入名字'); return; }
+  var userSub = STATE.subjects.find(function(s){return s.id === 'user'});
+  if(userSub){
+    userSub.name = name;
+    saveState();
+    renderSubjectBar();
+    renderTodayOverview();
+    renderSubjectDiaries();
+    renderCalendar();
+    renderSettings(); // Re-render settings to update name display
+    closeModal();
+    showToast('名字已更新');
+  }
 }
 
 // ===== 初始化 =====
