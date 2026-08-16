@@ -458,19 +458,19 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
 /* ===== V19.11 Swipe Actions ===== */
 .tl-row-wrapper{position:relative;overflow:hidden;border-radius:var(--radius);margin-bottom:6px}
-.tl-actions-left,.tl-actions-right{position:absolute;top:0;bottom:0;display:flex;align-items:center;z-index:0;transition:opacity .2s}
-.tl-actions-left{left:0;opacity:0}
-.tl-actions-right{right:0;opacity:0}
+.tl-actions-left,.tl-actions-right{position:absolute;top:0;bottom:0;display:flex;align-items:center;z-index:2;transition:opacity .2s}
+.tl-actions-left{left:0;opacity:0;padding-left:12px}
+.tl-actions-right{right:0;opacity:0;padding-right:12px}
 .tl-row-wrapper.show-left .tl-actions-left{opacity:1}
 .tl-row-wrapper.show-right .tl-actions-right{opacity:1}
 .tl-swiper{position:relative;background:var(--card);width:100%;transition:transform .2s ease;will-change:transform;touch-action:pan-y;z-index:1}
 .tl-swiper.swiped-left{transform:translateX(-156px)}
-.tl-swiper.swiped-right{transform:translateX(64px)}
+.tl-swiper.swiped-right{transform:translateX(80px)}
 .tl-btn{height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px;color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 .tl-btn svg{width:16px;height:16px}
-.tl-btn-edit{background:#4a4a4a;margin-right:6px}
+.tl-btn-edit{background:#4a4a4a}
 .tl-btn-delete{background:#ef4747;margin-left:6px}
-.tl-btn-copy{background:#4a4a4a;margin-left:6px}
+.tl-btn-copy{background:#4a4a4a}
 
 /* ===== V19.11 Multi-Select ===== */
 .tl-multiselect-bar{position:fixed;top:0;left:0;right:0;background:var(--card2);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3)}
@@ -4360,13 +4360,15 @@ function initSwipeDelete(){
   var rows = document.querySelectorAll('.tl-swiper');
   rows.forEach(function(row){
     var startX = 0, currentX = 0, isDragging = false, startY = 0;
-    var longPressTimer = null;
+    var longPressTimer = null, hasMoved = false, isHorizontal = null;
     
     row.addEventListener('touchstart', function(e){
       if(STATE.tlMultiSelect) return;
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       isDragging = true;
+      hasMoved = false;
+      isHorizontal = null;
       row.style.transition = 'none';
       
       longPressTimer = setTimeout(function(){
@@ -4382,21 +4384,36 @@ function initSwipeDelete(){
       currentX = e.touches[0].clientX;
       var currentY = e.touches[0].clientY;
       var diff = currentX - startX;
-      var diffY = Math.abs(currentY - startY);
+      var diffY = currentY - startY;
+      var absDiff = Math.abs(diff);
+      var absDiffY = Math.abs(diffY);
       
-      if(longPressTimer && (Math.abs(diff) > 5 || diffY > 5)){
+      if(longPressTimer && (absDiff > 5 || absDiffY > 5)){
         clearTimeout(longPressTimer);
         longPressTimer = null;
       }
       
-      if(diffY < 30 && Math.abs(diff) > 0){
+      // Determine swipe direction after 15px movement
+      if(!hasMoved && (absDiff > 15 || absDiffY > 15)){
+        hasMoved = true;
+        isHorizontal = absDiff > absDiffY;
+      }
+      
+      // Only process horizontal swipes; let vertical pass through for scrolling
+      if(isHorizontal === true){
         var translate = diff;
-        var maxRight = 64, maxLeft = -156;
+        var maxRight = 80, maxLeft = -156;
         if(translate > maxRight) translate = maxRight + (translate - maxRight) * 0.3;
         if(translate < maxLeft) translate = maxLeft + (translate - maxLeft) * 0.3;
         row.style.transform = 'translateX('+translate+'px)';
+        e.preventDefault();
+      } else if(isHorizontal === false){
+        // Vertical scroll: auto-close any open swipe rows on this container
+        if(tlSwipeState.openId){
+          closeSwipeRows();
+        }
       }
-    }, {passive: true});
+    }, {passive: false});
     
     row.addEventListener('touchend', function(e){
       if(!isDragging) return;
@@ -4412,19 +4429,19 @@ function initSwipeDelete(){
       var id = row.dataset.recordId;
       var wrapper = row.parentElement;
       
-      if(diff < -40){
+      if(diff < -60){
         closeSwipeRows();
         tlSwipeState.openId = id;
         tlSwipeState.direction = 'left';
         row.classList.add('swiped-left');
         row.style.transform = 'translateX(-156px)';
         if(wrapper) wrapper.classList.add('show-right');
-      } else if(diff > 20){
+      } else if(diff > 60){
         closeSwipeRows();
         tlSwipeState.openId = id;
         tlSwipeState.direction = 'right';
         row.classList.add('swiped-right');
-        row.style.transform = 'translateX(64px)';
+        row.style.transform = 'translateX(80px)';
         if(wrapper) wrapper.classList.add('show-left');
       } else {
         closeSwipeRows();
@@ -5331,41 +5348,140 @@ function checkAchievements(){
 function editRecordDate(recordId){
   var record = STATE.records.find(function(r){return r.id === recordId});
   if(!record) return;
+  
+  // Get first action (assuming single action per record, or first one)
+  var a = record.actions[0];
+  var sub = getSubject(record.subject);
+  var catColor = getCatColor(a.category);
+  
   var html = '<div class="ms-title">修改记录</div>';
   
-  // Show actions summary
-  record.actions.forEach(function(a){
-    var catColor = getCatColor(a.category);
-    html += '<div style="background:var(--card);border-radius:var(--radius);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px">';
-    html += '<div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:'+catColor+'22">'+a.icon+'</div>';
-    html += '<div style="flex:1"><div style="font-size:14px;font-weight:600">'+escapeHtml(a.standardName)+'</div>';
-    html += '<div style="font-size:11px;color:var(--text4)"><span class="cal-cat-color-dot" style="background:'+catColor+'"></span>'+a.category+(a.quantity>0?' · '+a.quantity+a.unit:'')+'</div></div></div>';
-  });
+  // Action preview card
+  html += '<div style="background:var(--card);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px">';
+  html += '<div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:'+catColor+'22">'+a.icon+'</div>';
+  html += '<div style="flex:1"><div style="font-size:14px;font-weight:600">'+escapeHtml(a.standardName)+'</div>';
+  html += '<div style="font-size:11px;color:var(--text4)"><span class="cal-cat-color-dot" style="background:'+catColor+'"></span>'+a.category+(a.quantity>0?' · '+a.quantity+a.unit:'')+'</div></div></div>';
   
+  // Subject selection
+  html += '<div class="ms-label">主体</div>';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
+  var allSubjects = STATE.subjects.concat(STATE.customSubjects);
+  allSubjects.forEach(function(s){
+    var active = s.id === record.subject ? 'var(--green-bg)' : 'var(--card2)';
+    var color = s.id === record.subject ? 'var(--green)' : 'var(--text3)';
+    var border = s.id === record.subject ? 'var(--green-dim)' : 'transparent';
+    html += '<div class="edit-subject-chip" data-subid="'+s.id+'" onclick="selectEditSubject(this)" style="padding:4px 10px;border-radius:16px;cursor:pointer;transition:all .15s;background:'+active+';color:'+color+';border:1.5px solid '+border+'">'+s.emoji+' '+escapeHtml(s.name)+'</div>';
+  });
+  html += '</div>';
+  html += '<input type="hidden" id="editSubjectId" value="'+record.subject+'">';
+  
+  // Action name
+  html += '<div class="ms-label">动作名称</div>';
+  html += '<input type="text" id="editActionName" value="'+escapeHtml(a.standardName)+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px">';
+  
+  // Quantity + Unit
+  html += '<div style="display:flex;gap:8px;margin-bottom:10px">';
+  html += '<div style="flex:1">';
+  html += '<div class="ms-label">数量</div>';
+  html += '<input type="number" id="editQuantity" value="'+a.quantity+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none">';
+  html += '</div>';
+  html += '<div style="flex:1">';
+  html += '<div class="ms-label">单位</div>';
+  html += '<input type="text" id="editUnit" value="'+escapeHtml(a.unit)+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none">';
+  html += '</div>';
+  html += '</div>';
+  
+  // Category selection
+  var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
+  html += '<div class="ms-label">分类</div>';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
+  cats.forEach(function(c){
+    var active = c === a.category ? 'var(--green-bg)' : 'var(--card2)';
+    var color = c === a.category ? 'var(--green)' : 'var(--text3)';
+    var border = c === a.category ? 'var(--green-dim)' : 'transparent';
+    html += '<div class="edit-category-chip" data-cat="'+c+'" onclick="selectEditCategory(this)" style="padding:4px 10px;border-radius:16px;font-size:12px;cursor:pointer;transition:all .15s;background:'+active+';color:'+color+';border:1.5px solid '+border+'">'+c+'</div>';
+  });
+  html += '</div>';
+  html += '<input type="hidden" id="editCategory" value="'+a.category+'">';
+  
+  // Date
   html += '<div class="ms-label">日期</div>';
-  html += '<input type="date" id="newRecordDate" value="'+record.date+'">';
+  html += '<input type="date" id="newRecordDate" value="'+record.date+'" style="margin-bottom:10px">';
+  
+  // Notes
   html += '<div class="ms-label">备注</div>';
   html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
+  
   html += '<div class="ms-actions">';
   html += '<button class="btn btn-cancel" onclick="closeModal()">取消</button>';
   html += '<button class="btn" style="background:var(--red);color:#fff" onclick="deleteRecord(\''+recordId+'\');closeModal()">删除记录</button>';
-  html += '<button class="btn btn-primary" onclick="saveRecordDate(\''+recordId+'\')">保存</button>';
+  html += '<button class="btn btn-primary" onclick="saveRecordEdit(\''+recordId+'\')">保存</button>';
   html += '</div>';
   document.getElementById('modalContent').innerHTML = html;
   document.getElementById('modalOverlay').classList.add('show');
 }
 
-function saveRecordDate(recordId){
+function selectEditSubject(el){
+  var subId = el.dataset.subid;
+  document.getElementById('editSubjectId').value = subId;
+  var chips = document.querySelectorAll('.edit-subject-chip');
+  chips.forEach(function(chip){
+    chip.style.background = 'var(--card2)';
+    chip.style.color = 'var(--text3)';
+    chip.style.borderColor = 'transparent';
+  });
+  el.style.background = 'var(--green-bg)';
+  el.style.color = 'var(--green)';
+  el.style.borderColor = 'var(--green-dim)';
+}
+
+function selectEditCategory(el){
+  var cat = el.dataset.cat;
+  document.getElementById('editCategory').value = cat;
+  var chips = document.querySelectorAll('.edit-category-chip');
+  chips.forEach(function(chip){
+    chip.style.background = 'var(--card2)';
+    chip.style.color = 'var(--text3)';
+    chip.style.borderColor = 'transparent';
+  });
+  el.style.background = 'var(--green-bg)';
+  el.style.color = 'var(--green)';
+  el.style.borderColor = 'var(--green-dim)';
+}
+
+function saveRecordEdit(recordId){
   var record = STATE.records.find(function(r){return r.id === recordId});
   if(!record) return;
   var newDate = document.getElementById('newRecordDate').value;
   var newNotes = document.getElementById('newRecordNotes').value.trim();
+  var newSubject = document.getElementById('editSubjectId').value;
+  var newActionName = document.getElementById('editActionName').value.trim();
+  var newQty = parseFloat(document.getElementById('editQuantity').value) || 0;
+  var newUnit = document.getElementById('editUnit').value.trim() || '次';
+  var newCat = document.getElementById('editCategory').value || '其他';
+  
   if(!newDate){ showToast('请选择日期'); return; }
+  if(!newActionName){ showToast('请填写动作名称'); return; }
+  
   record.date = newDate;
   record.notes = newNotes;
+  record.subject = newSubject;
   var parts = newDate.split('-');
   var newTs = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])).getTime();
   record.timestamp = newTs;
+  
+  // Update first action
+  if(record.actions.length > 0){
+    var a = record.actions[0];
+    a.action = newActionName;
+    a.standardName = newActionName;
+    a.actionName = newActionName;
+    a.quantity = newQty;
+    a.unit = newUnit;
+    a.category = newCat;
+    a.icon = CAT_ICONS[newCat] || '📝';
+  }
+  
   saveState();
   closeModal();
   renderTimeline();
