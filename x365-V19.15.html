@@ -588,10 +588,10 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
     <!-- 今日概览 -->
     <div class="input-section">
-      <div class="atmosphere-wrap" id="atmosphereText" style="position:relative;height:200px">
+      <div class="atmosphere-wrap" id="atmosphereText" style="position:relative;height:300px">
         <!-- 氛围文字层（动态生成，pointer-events:none 不阻挡按钮） -->
         <!-- 按钮区域（绝对定位在底部，z-index最高） -->
-        <div class="record-btn-wrap" id="modeBtnWrap" style="position:absolute;bottom:17px;left:50%;transform:translateX(-50%);z-index:10;gap:12px;padding:0">
+        <div class="record-btn-wrap" id="modeBtnWrap" style="position:absolute;bottom:25px;left:50%;transform:translateX(-50%);z-index:10;gap:12px;padding:0">
           <button class="mode-btn manual" id="manualBtn" onclick="openManualAdd()" style="width:80px;height:80px;background:var(--green);box-shadow:0 4px 24px rgba(48,209,88,.35)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="width:32px;height:32px;color:#fff">
               <line x1="12" y1="5" x2="12" y2="19"/>
@@ -2147,7 +2147,7 @@ function renderAtmosphere(){
   if(!layer){
     layer = document.createElement('div');
     layer.id = 'atmosphereTextLayer';
-    layer.style.cssText = 'position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden';
+    layer.style.cssText = 'position:absolute;top:0;left:0;right:0;height:200px;z-index:1;pointer-events:none;overflow:hidden';
     container.appendChild(layer);
   }
   var poolLong = ATMOSPHERE_TEXTS_LONG.slice();
