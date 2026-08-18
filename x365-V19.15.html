@@ -130,8 +130,8 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .mode-btn.voice.recording::after{content:'';position:absolute;inset:-12px;border-radius:50%;border:2px solid rgba(255,69,58,.12);animation:ripple 1.2s infinite .4s}
 @keyframes float{
   0%{transform:translateY(0)}
-  33%{transform:translateY(-6px)}
-  66%{transform:translateY(3px)}
+  33%{transform:translateY(-4px)}
+  66%{transform:translateY(2px)}
   100%{transform:translateY(0)}
 }
 @keyframes breathe{
@@ -588,10 +588,10 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
     <!-- 今日概览 -->
     <div class="input-section">
-      <div class="atmosphere-wrap" id="atmosphereText" style="position:relative;height:300px">
+      <div class="atmosphere-wrap" id="atmosphereText" style="position:relative;height:200px">
         <!-- 氛围文字层（动态生成，pointer-events:none 不阻挡按钮） -->
         <!-- 按钮区域（绝对定位在底部，z-index最高） -->
-        <div class="record-btn-wrap" id="modeBtnWrap" style="position:absolute;bottom:25px;left:50%;transform:translateX(-50%);z-index:10;gap:12px;padding:0">
+        <div class="record-btn-wrap" id="modeBtnWrap" style="position:absolute;bottom:17px;left:50%;transform:translateX(-50%);z-index:10;gap:12px;padding:0">
           <button class="mode-btn manual" id="manualBtn" onclick="openManualAdd()" style="width:80px;height:80px;background:var(--green);box-shadow:0 4px 24px rgba(48,209,88,.35)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="width:32px;height:32px;color:#fff">
               <line x1="12" y1="5" x2="12" y2="19"/>
@@ -2183,7 +2183,7 @@ function renderAtmosphere(){
   for(var i=0; i < topCount && poolLong.length > 0; i++){
     var idx = Math.floor(Math.random() * poolLong.length);
     var pos = topPositions[i % topPositions.length];
-    var size = 13 + Math.floor(Math.random() * 8); // 13-20px
+    var size = 9 + Math.floor(Math.random() * 5); // 9-13px (V19.15: scaled for 200px height)
     var top = pos.top + shiftDir * shiftAmt; // 统一偏移方向
     var left = pos.left + (Math.random() * 6 - 3); // ±3%
     if(left < 0) left = 0;
@@ -2199,8 +2199,8 @@ function renderAtmosphere(){
   }
   // 碰撞检测：垂直间距 < 文字高度均值的 0.6 倍视为重叠
   function checkOverlap(a, b){
-    var hA = a.size / 2.6; // px 转 %
-    var hB = b.size / 2.6;
+    var hA = a.size / 1.73; // px 转 % (V19.15: scaled for 200px height)
+    var hB = b.size / 1.73;
     var vGap = Math.abs(a.top - b.top);
     return vGap < (hA + hB) * 0.6;
   }
@@ -2216,16 +2216,16 @@ function renderAtmosphere(){
         if(checkOverlap(topItems[i], topItems[j])){
           hasIssue = true;
           if(topItems[i].size >= topItems[j].size){
-            topItems[i].size = Math.max(13, topItems[i].size - 2);
+            topItems[i].size = Math.max(9, topItems[i].size - 2);
           }else{
-            topItems[j].size = Math.max(13, topItems[j].size - 2);
+            topItems[j].size = Math.max(9, topItems[j].size - 2);
           }
         }else if(checkTooWide(topItems[i], topItems[j])){
           hasIssue = true;
           if(topItems[i].size <= topItems[j].size){
-            topItems[i].size = Math.min(20, topItems[i].size + 1);
+            topItems[i].size = Math.min(13, topItems[i].size + 1);
           }else{
-            topItems[j].size = Math.min(20, topItems[j].size + 1);
+            topItems[j].size = Math.min(13, topItems[j].size + 1);
           }
         }
       }
@@ -2245,7 +2245,7 @@ function renderAtmosphere(){
   for(var i=0; i < bottomCount && poolShort.length > 0; i++){
     var idx = Math.floor(Math.random() * poolShort.length);
     var pos = bottomAnchors[combo[i]];
-    var size = 12 + Math.floor(Math.random() * 4); // 12-15px，减小上限避免溢出
+    var size = 8 + Math.floor(Math.random() * 3); // 8-10px (V19.15: scaled for 200px height)，减小上限避免溢出
     var top = pos.top + (Math.random() * 6 - 3); // ±3%
     var left = pos.left + (Math.random() * 6 - 3);
     if(left < 0) left = 0;
@@ -2262,7 +2262,7 @@ function renderAtmosphere(){
     var text = poolShort[idx];
     var containerPx = maxW * 4.8;
     var textLen = text.replace(/['"]/g,'').length;
-    while(size * textLen > containerPx && size > 8){
+    while(size * textLen > containerPx && size > 5){
       size -= 1;
     }
     var floatDur = (7 + Math.random() * 4).toFixed(1);
