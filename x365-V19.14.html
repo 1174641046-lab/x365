@@ -722,9 +722,6 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
     </div>
     <div class="subject-filter" id="calSubjectFilter"></div>
     <div class="subject-filter" id="calActionFilter" style="display:none"></div>
-    <div class="cal-filter-bar">
-      <select id="calFilterCategory" onchange="renderCalendar()"><option value="all">全部分类</option></select>
-    </div>
     <div class="cal-month-nav">
       <div class="cal-nav-btn" onclick="prevCalendarMonth()">‹</div>
       <div id="calMonthLabel" class="cal-month-label"></div>
@@ -6639,9 +6636,6 @@ function renderCalendar(){
   
   if(label) label.textContent = year+'年'+(month+1)+'月';
   
-  // Update filter dropdowns
-  updateCalFilters();
-  
   // Get filtered records
   var records = STATE.records;
   // V19.14: 主体筛选改为 chip 样式，从 STATE.calFilter 读取
@@ -6652,12 +6646,6 @@ function renderCalendar(){
   if(STATE.calActionFilter !== 'all'){
     records = records.filter(function(r){
       return r.actions.some(function(a){return a.standardName === STATE.calActionFilter});
-    });
-  }
-  var filterCat = document.getElementById('calFilterCategory');
-  if(filterCat && filterCat.value !== 'all'){
-    records = records.filter(function(r){
-      return r.actions.some(function(a){return a.category === filterCat.value});
     });
   }
   
@@ -6734,12 +6722,6 @@ function renderCalDayDetail(dateStr){
       return r.actions.some(function(a){return a.standardName === STATE.calActionFilter});
     });
   }
-  var filterCat = document.getElementById('calFilterCategory');
-  if(filterCat && filterCat.value !== 'all'){
-    records = records.filter(function(r){
-      return r.actions.some(function(a){return a.category === filterCat.value});
-    });
-  }
   
   if(records.length === 0){
     detail.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text4)">'+shortDate(dateStr)+' 没有记录</div>';
@@ -6792,7 +6774,14 @@ function renderCalDayDetail(dateStr){
     var timeStr = m.times.length > 1 ? m.times[0]+'~'+m.times[m.times.length-1] : m.times[0];
     var notesStr = m.notes ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">📝 '+escapeHtml(m.notes)+'</div>' : '';
     var calDetailId = 'calDetail_' + idx;
-    html += '<div class="cal-day-item" style="cursor:pointer" onclick="event.stopPropagation();toggleCalDetail(this,\''+calDetailId+'\')">' +
+    // V19.14: count=1 直接点击编辑，count>1 点击展开后逐条编辑
+    var rowClick = m.count > 1 
+      ? 'event.stopPropagation();toggleCalDetail(this,\''+calDetailId+'\')'
+      : 'event.stopPropagation();editRecordDate(\''+m.detailList[0].id+'\')';
+    var expandIcon = m.count > 1 
+      ? '<div class="sc-expand-btn" style="margin-left:2px;flex-shrink:0;color:var(--text4);font-size:12px">∨</div>'
+      : '<div style="margin-left:2px;flex-shrink:0;color:var(--text4);font-size:14px">✏️</div>';
+    html += '<div class="cal-day-item" style="cursor:pointer" onclick="'+rowClick+'">' +
       '<div style="width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;background:'+catColor+'22">'+m.icon+'</div>' +
       '<div style="flex:1;min-width:0">' +
         '<div style="font-size:13px;font-weight:600">'+escapeHtml(m.standardName)+countBadge+'</div>' +
@@ -6800,22 +6789,24 @@ function renderCalDayDetail(dateStr){
         notesStr +
       '</div>' +
       qtyStr +
-      '<div class="sc-expand-btn" style="margin-left:2px;flex-shrink:0;color:var(--text4);font-size:12px">∨</div>' +
+      expandIcon +
     '</div>';
-    // V19.14: 展开显示每条原始记录，可点击编辑
-    var detailHtml = '<div class="sc-sub-body collapsed" id="'+calDetailId+'" style="max-height:0;overflow:hidden;transition:max-height .2s">';
-    m.detailList.sort(function(a,b){return (b.time||'').localeCompare(a.time||'')});
-    m.detailList.forEach(function(det){
-      var noteStr = det.notes ? ' · 📝 '+escapeHtml(det.notes) : '';
-      detailHtml += '<div onclick="event.stopPropagation();editRecordDate(\''+det.id+'\')" style="padding:8px 12px 8px 40px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--sep);cursor:pointer">' +
-        '<span style="color:var(--text4);min-width:50px">'+det.time.substring(0,5)+'</span>' +
-        '<span style="flex:1">'+escapeHtml(m.standardName)+noteStr+'</span>' +
-        '<span style="color:var(--green);font-weight:600">'+det.qty+'<span style="font-size:10px;color:var(--text4)">'+m.unit+'</span></span>' +
-        '<span style="color:var(--text4);font-size:14px">✏️</span>' +
-      '</div>';
-    });
-    detailHtml += '</div>';
-    html += detailHtml;
+    // V19.14: 多条记录时展开显示每条，可点击编辑
+    if(m.count > 1){
+      var detailHtml = '<div class="sc-sub-body collapsed" id="'+calDetailId+'" style="max-height:0;overflow:hidden;transition:max-height .2s">';
+      m.detailList.sort(function(a,b){return (b.time||'').localeCompare(a.time||'')});
+      m.detailList.forEach(function(det){
+        var noteStr = det.notes ? ' · 📝 '+escapeHtml(det.notes) : '';
+        detailHtml += '<div onclick="event.stopPropagation();editRecordDate(\''+det.id+'\')" style="padding:8px 12px 8px 40px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);border-bottom:1px solid var(--sep);cursor:pointer">' +
+          '<span style="color:var(--text4);min-width:50px">'+det.time.substring(0,5)+'</span>' +
+          '<span style="flex:1">'+escapeHtml(m.standardName)+noteStr+'</span>' +
+          '<span style="color:var(--green);font-weight:600">'+det.qty+'<span style="font-size:10px;color:var(--text4)">'+m.unit+'</span></span>' +
+          '<span style="color:var(--text4);font-size:14px">✏️</span>' +
+        '</div>';
+      });
+      detailHtml += '</div>';
+      html += detailHtml;
+    }
   });
   detail.innerHTML = html;
 }
@@ -6833,22 +6824,6 @@ function prevCalendarMonth(){
 function nextCalendarMonth(){
   calCurrentMonth.setMonth(calCurrentMonth.getMonth() + 1);
   renderCalendar();
-}
-
-function updateCalFilters(){
-  var catFilter = document.getElementById('calFilterCategory');
-  if(!catFilter) return;
-  
-  var currentCat = catFilter.value || 'all';
-  
-  // Build category options with color dots
-  var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
-  var catHtml = '<option value="all">全部分类</option>';
-  cats.forEach(function(c){
-    catHtml += '<option value="'+c+'">'+c+'</option>';
-  });
-  catFilter.innerHTML = catHtml;
-  catFilter.value = currentCat;
 }
 
 function changeUserAvatar(){
