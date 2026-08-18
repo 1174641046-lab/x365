@@ -4581,6 +4581,7 @@ function initSwipeDelete(){
       if(STATE.tlMultiSelect) return;
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
+      currentX = startX;  // V19.13 fix: 初始化为startX，避免点击时diff为巨大负数
       isDragging = true;
       hasMoved = false;
       isHorizontal = null;
@@ -4638,6 +4639,12 @@ function initSwipeDelete(){
       if(longPressTimer){
         clearTimeout(longPressTimer);
         longPressTimer = null;
+      }
+      
+      // V19.13 fix: 没有明显的主动滑动（hasMoved=false），不显示胶囊按钮，交给click处理编辑
+      if(!hasMoved){
+        row.style.transform = 'translateX(0)';
+        return;
       }
       
       var diff = currentX - startX;
