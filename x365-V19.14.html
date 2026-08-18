@@ -721,6 +721,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       </div>
     </div>
     <div class="subject-filter" id="calSubjectFilter"></div>
+    <div class="subject-filter" id="calActionFilter" style="display:none"></div>
     <div class="cal-filter-bar">
       <select id="calFilterCategory" onchange="renderCalendar()"><option value="all">全部分类</option></select>
     </div>
@@ -2306,6 +2307,7 @@ var STATE = {
   stFilter: 'all',
   stActionFilter: 'all',
   calFilter: 'all',
+  calActionFilter: 'all',
   _stats: {},
   customSubjects: [],
   customActions: {},
@@ -5512,7 +5514,9 @@ function setFilter(containerId, subjectId){
     renderTimeline();
   }else if(containerId === 'calSubjectFilter'){
     STATE.calFilter = subjectId;
+    STATE.calActionFilter = 'all';
     renderCalendar();
+    renderCalActionFilter();
   }else{
     STATE.stFilter = subjectId;
     STATE.stActionFilter = 'all';  // V19.14: 切换主体时重置动作筛选
@@ -5563,6 +5567,48 @@ function setStActionFilter(name){
   STATE.stActionFilter = name;
   renderStats();
   renderStActionFilter();
+}
+
+// V19.14: 渲染打卡页动作筛选器（根据选中主体动态生成）
+function renderCalActionFilter(){
+  var container = document.getElementById('calActionFilter');
+  if(!container) return;
+
+  if(STATE.calFilter === 'all'){
+    container.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+
+  var actionNames = {};
+  STATE.records.forEach(function(r){
+    if(r.subject !== STATE.calFilter) return;
+    r.actions.forEach(function(a){
+      if(!actionNames[a.standardName]) actionNames[a.standardName] = {name: a.standardName, icon: a.icon};
+    });
+  });
+
+  var names = Object.keys(actionNames).sort();
+  if(names.length === 0){
+    container.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+
+  container.style.display = 'flex';
+  var html = '<div class="sf-chip sf-all '+(STATE.calActionFilter==='all'?'active':'')+'" onclick="setCalActionFilter(\'all\')"><span class="sf-name">全部动作</span></div>';
+  names.forEach(function(name){
+    var a = actionNames[name];
+    var active = STATE.calActionFilter === name ? 'active' : '';
+    html += '<div class="sf-chip '+active+'" onclick="setCalActionFilter(\''+escapeHtml(name).replace(/'/g,"\\'")+'\')"><span class="sf-emoji">'+(a.icon||'📝')+'</span><span class="sf-name">'+escapeHtml(name)+'</span></div>';
+  });
+  container.innerHTML = html;
+}
+
+function setCalActionFilter(name){
+  STATE.calActionFilter = name;
+  renderCalendar();
+  renderCalActionFilter();
 }
 
 // ===== 滚动时主体筛选栏自动切换到右侧悬浮 =====
@@ -6491,7 +6537,7 @@ function switchPage(page, el){
     renderStActionFilter();
     initScrollFloat();
   }
-  if(page === 'calendar'){ renderCalendar(); renderSubjectFilters(); initScrollFloat(); }
+  if(page === 'calendar'){ renderCalendar(); renderSubjectFilters(); renderCalActionFilter(); initScrollFloat(); }
   if(page === 'ach') renderAchievements();
   if(page === 'settings'){ renderSettings(); updateThemeUI(); }
 }
@@ -6602,6 +6648,12 @@ function renderCalendar(){
   if(STATE.calFilter !== 'all'){
     records = records.filter(function(r){return r.subject === STATE.calFilter});
   }
+  // V19.14: 动作筛选
+  if(STATE.calActionFilter !== 'all'){
+    records = records.filter(function(r){
+      return r.actions.some(function(a){return a.standardName === STATE.calActionFilter});
+    });
+  }
   var filterCat = document.getElementById('calFilterCategory');
   if(filterCat && filterCat.value !== 'all'){
     records = records.filter(function(r){
@@ -6679,6 +6731,12 @@ function renderCalDayDetail(dateStr){
   // V19.14: 主体筛选改为 chip 样式，从 STATE.calFilter 读取
   if(STATE.calFilter !== 'all'){
     records = records.filter(function(r){return r.subject === STATE.calFilter});
+  }
+  // V19.14: 动作筛选
+  if(STATE.calActionFilter !== 'all'){
+    records = records.filter(function(r){
+      return r.actions.some(function(a){return a.standardName === STATE.calActionFilter});
+    });
   }
   var filterCat = document.getElementById('calFilterCategory');
   if(filterCat && filterCat.value !== 'all'){
