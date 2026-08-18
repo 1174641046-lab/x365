@@ -720,8 +720,8 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
         <div class="header-btn" onclick="switchPage('settings')" title="设置">👤</div>
       </div>
     </div>
+    <div class="subject-filter" id="calSubjectFilter"></div>
     <div class="cal-filter-bar">
-      <select id="calFilterSubject" onchange="renderCalendar()"><option value="all">全部主体</option></select>
       <select id="calFilterCategory" onchange="renderCalendar()"><option value="all">全部分类</option></select>
     </div>
     <div class="cal-month-nav">
@@ -2305,6 +2305,7 @@ var STATE = {
   tlFilter: 'all',
   stFilter: 'all',
   stActionFilter: 'all',
+  calFilter: 'all',
   _stats: {},
   customSubjects: [],
   customActions: {},
@@ -5485,9 +5486,13 @@ function updateDateLabel(){
 
 // ===== 渲染 - 主体筛选器 =====
 function renderSubjectFilters(){
-  ['tlSubjectFilter', 'stSubjectFilter'].forEach(function(id){
+  ['tlSubjectFilter', 'stSubjectFilter', 'calSubjectFilter'].forEach(function(id){
     var container = document.getElementById(id);
-    var filter = id === 'tlSubjectFilter' ? STATE.tlFilter : STATE.stFilter;
+    if(!container) return;
+    var filter;
+    if(id === 'tlSubjectFilter') filter = STATE.tlFilter;
+    else if(id === 'stSubjectFilter') filter = STATE.stFilter;
+    else filter = STATE.calFilter;
     var html = '<div class="sf-chip sf-all '+(filter==='all'?'active':'')+'" onclick="setFilter(\''+id+'\',\'all\')"><span class="sf-name">全部</span><span class="sf-name-en">All</span></div>';
     STATE.subjects.forEach(function(s){
       var active = filter === s.id ? 'active' : '';
@@ -5505,6 +5510,9 @@ function setFilter(containerId, subjectId){
   if(containerId === 'tlSubjectFilter'){
     STATE.tlFilter = subjectId;
     renderTimeline();
+  }else if(containerId === 'calSubjectFilter'){
+    STATE.calFilter = subjectId;
+    renderCalendar();
   }else{
     STATE.stFilter = subjectId;
     STATE.stActionFilter = 'all';  // V19.14: 切换主体时重置动作筛选
@@ -6483,7 +6491,7 @@ function switchPage(page, el){
     renderStActionFilter();
     initScrollFloat();
   }
-  if(page === 'calendar'){ renderCalendar(); initScrollFloat(); }
+  if(page === 'calendar'){ renderCalendar(); renderSubjectFilters(); initScrollFloat(); }
   if(page === 'ach') renderAchievements();
   if(page === 'settings'){ renderSettings(); updateThemeUI(); }
 }
@@ -6590,11 +6598,11 @@ function renderCalendar(){
   
   // Get filtered records
   var records = STATE.records;
-  var filterSub = document.getElementById('calFilterSubject');
-  var filterCat = document.getElementById('calFilterCategory');
-  if(filterSub && filterSub.value !== 'all'){
-    records = records.filter(function(r){return r.subject === filterSub.value});
+  // V19.14: 主体筛选改为 chip 样式，从 STATE.calFilter 读取
+  if(STATE.calFilter !== 'all'){
+    records = records.filter(function(r){return r.subject === STATE.calFilter});
   }
+  var filterCat = document.getElementById('calFilterCategory');
   if(filterCat && filterCat.value !== 'all'){
     records = records.filter(function(r){
       return r.actions.some(function(a){return a.category === filterCat.value});
@@ -6668,11 +6676,11 @@ function renderCalDayDetail(dateStr){
   var records = STATE.records.filter(function(r){return r.date === dateStr});
   
   // Apply filters
-  var filterSub = document.getElementById('calFilterSubject');
-  var filterCat = document.getElementById('calFilterCategory');
-  if(filterSub && filterSub.value !== 'all'){
-    records = records.filter(function(r){return r.subject === filterSub.value});
+  // V19.14: 主体筛选改为 chip 样式，从 STATE.calFilter 读取
+  if(STATE.calFilter !== 'all'){
+    records = records.filter(function(r){return r.subject === STATE.calFilter});
   }
+  var filterCat = document.getElementById('calFilterCategory');
   if(filterCat && filterCat.value !== 'all'){
     records = records.filter(function(r){
       return r.actions.some(function(a){return a.category === filterCat.value});
@@ -6774,23 +6782,10 @@ function nextCalendarMonth(){
 }
 
 function updateCalFilters(){
-  var subFilter = document.getElementById('calFilterSubject');
   var catFilter = document.getElementById('calFilterCategory');
-  if(!subFilter || !catFilter) return;
+  if(!catFilter) return;
   
-  var currentSub = subFilter.value || 'all';
   var currentCat = catFilter.value || 'all';
-  
-  // Build subject options
-  var subHtml = '<option value="all">全部主体</option>';
-  STATE.subjects.forEach(function(s){
-    subHtml += '<option value="'+s.id+'">'+s.emoji+' '+escapeHtml(s.name)+'</option>';
-  });
-  STATE.customSubjects.forEach(function(s){
-    subHtml += '<option value="'+s.id+'">'+s.emoji+' '+escapeHtml(s.name)+'</option>';
-  });
-  subFilter.innerHTML = subHtml;
-  subFilter.value = currentSub;
   
   // Build category options with color dots
   var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
