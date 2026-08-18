@@ -4521,7 +4521,9 @@ var tlSwipeState = {openId:null, direction:null};
 function onRowClick(id, el){
   if(tlSwipeState.openId){
     closeSwipeRows();
+    return;
   }
+  editRecordDate(id);
 }
 function closeSwipeRows(){
   var rows = document.querySelectorAll('.tl-swiper');
