@@ -4571,17 +4571,127 @@ function swipeDeleteRecord(id, btn){
 function swipeCopyRecord(id, btn){
   var orig = STATE.records.find(function(r){return r.id === id});
   if(!orig){ showToast('记录不存在'); return; }
+  closeSwipeRows();
+  openCopyModal(orig);
+}
+
+// V19.14: 复制记录弹窗（预填原记录数据，保存后创建新记录）
+function openCopyModal(orig){
+  var a = orig.actions[0];
+  var sub = getSubject(orig.subject);
+  var catColor = getCatColor(a.category);
+
+  var html = '<div class="ms-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">复制记录<div onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)">✕</div></div>';
+
+  // Action preview card
+  html += '<div style="background:var(--card);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px">';
+  html += '<div style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:'+catColor+'22">'+a.icon+'</div>';
+  html += '<div style="flex:1"><div style="font-size:14px;font-weight:600">'+escapeHtml(a.standardName)+'</div>';
+  html += '<div style="font-size:11px;color:var(--text4)"><span class="cal-cat-color-dot" style="background:'+catColor+'"></span>'+a.category+(a.quantity>0?' · '+a.quantity+a.unit:'')+'</div></div></div>';
+
+  // Subject selection
+  html += '<div class="ms-label">主体</div>';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
+  var allSubjects = STATE.subjects.concat(STATE.customSubjects);
+  allSubjects.forEach(function(s){
+    var active = s.id === orig.subject ? 'var(--green-bg)' : 'var(--card2)';
+    var color = s.id === orig.subject ? 'var(--green)' : 'var(--text3)';
+    var border = s.id === orig.subject ? 'var(--green-dim)' : 'transparent';
+    html += '<div class="edit-subject-chip" data-subid="'+s.id+'" onclick="selectEditSubject(this)" style="padding:4px 10px;border-radius:16px;cursor:pointer;transition:all .15s;background:'+active+';color:'+color+';border:1.5px solid '+border+'">'+s.emoji+' '+escapeHtml(s.name)+'</div>';
+  });
+  html += '</div>';
+  html += '<input type="hidden" id="editSubjectId" value="'+orig.subject+'">';
+
+  // Action name
+  html += '<div class="ms-label">动作名称</div>';
+  html += '<input type="text" id="editActionName" value="'+escapeHtml(a.standardName)+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px">';
+
+  // Quantity + Unit
+  html += '<div style="display:flex;gap:8px;margin-bottom:10px">';
+  html += '<div style="flex:1"><div class="ms-label">数量</div>';
+  html += '<input type="number" id="editQuantity" value="'+a.quantity+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none"></div>';
+  html += '<div style="flex:1"><div class="ms-label">单位</div>';
+  html += '<input type="text" id="editUnit" value="'+escapeHtml(a.unit)+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none"></div>';
+  html += '</div>';
+
+  // Category selection
+  var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
+  html += '<div class="ms-label">分类</div>';
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">';
+  cats.forEach(function(c){
+    var active = c === a.category ? 'var(--green-bg)' : 'var(--card2)';
+    var color = c === a.category ? 'var(--green)' : 'var(--text3)';
+    var border = c === a.category ? 'var(--green-dim)' : 'transparent';
+    html += '<div class="edit-category-chip" data-cat="'+c+'" onclick="selectEditCategory(this)" style="padding:4px 10px;border-radius:16px;font-size:12px;cursor:pointer;transition:all .15s;background:'+active+';color:'+color+';border:1.5px solid '+border+'">'+c+'</div>';
+  });
+  html += '</div>';
+  html += '<input type="hidden" id="editCategory" value="'+a.category+'">';
+
+  // Date (default to today)
+  var today = formatDate(new Date());
+  html += '<div class="ms-label">日期</div>';
+  html += '<input type="date" id="newRecordDate" value="'+today+'" style="margin-bottom:10px">';
+
+  // Notes (empty by default for new copy)
+  html += '<div class="ms-label">备注</div>';
+  html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(orig.notes||'')+'</textarea>';
+
+  html += '<div class="ms-actions">';
+  html += '<button class="btn" onclick="closeModal()">取消</button>';
+  html += '<button class="btn btn-primary" onclick="saveRecordCopy(\''+orig.id+'\')">保存复制</button>';
+  html += '</div>';
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+// V19.14: 保存复制记录（创建新记录，不修改原记录）
+function saveRecordCopy(origId){
+  var orig = STATE.records.find(function(r){return r.id === origId});
+  if(!orig) return;
+  var newDate = document.getElementById('newRecordDate').value;
+  var newNotes = document.getElementById('newRecordNotes').value.trim();
+  var newSubject = document.getElementById('editSubjectId').value;
+  var newActionName = document.getElementById('editActionName').value.trim();
+  var newQty = parseFloat(document.getElementById('editQuantity').value) || 0;
+  var newUnit = document.getElementById('editUnit').value.trim() || '次';
+  var newCat = document.getElementById('editCategory').value || '其他';
+
+  if(!newDate){ showToast('请选择日期'); return; }
+  if(!newActionName){ showToast('请填写动作名称'); return; }
+
   var nowTs = Date.now();
-  var today = fmtDate(nowTs);
+  var parts = newDate.split('-');
+  var newTs = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), new Date().getHours(), new Date().getMinutes()).getTime();
+
   var copy = JSON.parse(JSON.stringify(orig));
   copy.id = 'r' + nowTs;
-  copy.date = today;
-  copy.timestamp = nowTs;
+  copy.date = newDate;
+  copy.timestamp = newTs;
+  copy.hour = new Date().getHours();
+  copy.subject = newSubject;
+  copy.notes = newNotes;
+
+  // Update first action
+  if(copy.actions.length > 0){
+    var a = copy.actions[0];
+    a.action = newActionName;
+    a.standardName = newActionName;
+    a.actionName = newActionName;
+    a.quantity = newQty;
+    a.unit = newUnit;
+    a.category = newCat;
+    a.icon = CAT_ICONS[newCat] || '📝';
+  }
+
   STATE.records.push(copy);
   saveState();
-  closeSwipeRows();
+  closeModal();
   renderTimeline();
-  showToast('已复制到今日');
+  renderTodayOverview();
+  renderSubjectDiaries();
+  renderStats();
+  renderCalendar();
+  showToast('已复制记录');
 }
 
 function initSwipeDelete(){
