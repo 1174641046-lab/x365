@@ -489,7 +489,10 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .settings-item-name{font-size:15px;font-weight:500;color:var(--text)}
 .settings-item-desc{font-size:12px;color:var(--text4);margin-top:2px}
 .settings-item-arrow{font-size:18px;color:var(--text4);flex-shrink:0}
-.settings-dropdown-item{margin-left:16px;margin-bottom:6px;width:calc(100% - 16px);border-radius:0 var(--radius) var(--radius) 0;box-sizing:border-box}
+.settings-dropdown-item{margin-left:16px;margin-bottom:6px;width:calc(100% - 16px);border-radius:var(--radius);box-sizing:border-box;padding:10px 14px}
+.settings-dropdown-item .settings-item-icon{font-size:14px;width:28px;height:28px}
+.settings-dropdown-item .settings-item-name{font-size:14px}
+.settings-dropdown-item .settings-item-desc{font-size:11px}
 
 /* ===== V19.11 Timeline Search ===== */
 .tl-search-bar{padding:0 20px 8px}
@@ -752,7 +755,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
         </div>
         <div id="profileDropdown" style="display:none;overflow:hidden;transition:max-height .25s ease-out">
           <div class="settings-item settings-dropdown-item" onclick="changeUserAvatar()">
-            <div class="settings-item-icon" style="font-size:16px">📷</div>
+            <div class="settings-item-icon">📷</div>
             <div class="settings-item-body">
               <div class="settings-item-name">更换头像</div>
               <div class="settings-item-desc">点击上传图片或选择Emoji</div>
@@ -760,7 +763,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             <div class="settings-item-arrow">›</div>
           </div>
           <div class="settings-item settings-dropdown-item" onclick="changeUserName()">
-            <div class="settings-item-icon" style="font-size:16px">📝</div>
+            <div class="settings-item-icon">📝</div>
             <div class="settings-item-body">
               <div class="settings-item-name">修改名字</div>
               <div class="settings-item-desc">点击修改</div>
@@ -782,7 +785,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
         </div>
         <div id="themeDropdown" style="display:none;overflow:hidden;transition:max-height .25s ease-out">
           <div class="settings-item settings-dropdown-item" onclick="selectTheme('dark')">
-            <div class="settings-item-icon" style="font-size:16px">🌙</div>
+            <div class="settings-item-icon">🌙</div>
             <div class="settings-item-body">
               <div class="settings-item-name">深夜模式</div>
               <div class="settings-item-desc">黑色背景，护眼省电</div>
@@ -790,7 +793,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             <div class="settings-item-arrow theme-check" id="themeCheckDark" style="display:none;color:var(--green);font-size:20px">✓</div>
           </div>
           <div class="settings-item settings-dropdown-item" onclick="selectTheme('light')">
-            <div class="settings-item-icon" style="font-size:16px">☀️</div>
+            <div class="settings-item-icon">☀️</div>
             <div class="settings-item-body">
               <div class="settings-item-name">白天模式</div>
               <div class="settings-item-desc">白色背景，明亮清晰</div>
@@ -798,7 +801,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             <div class="settings-item-arrow theme-check" id="themeCheckLight" style="display:none;color:var(--green);font-size:20px">✓</div>
           </div>
           <div class="settings-item settings-dropdown-item" onclick="selectTheme('auto')">
-            <div class="settings-item-icon" style="font-size:16px">🔄</div>
+            <div class="settings-item-icon">🔄</div>
             <div class="settings-item-body">
               <div class="settings-item-name">跟随系统</div>
               <div class="settings-item-desc">根据系统设置自动切换</div>
@@ -825,54 +828,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
         <div class="ach-grid" id="achGrid" style="padding:0"></div>
       </div>
 
-      <div class="settings-group">
-        <div class="settings-item" style="cursor:pointer" onclick="toggleDataDropdown()">
-          <div class="settings-item-icon">🗂️</div>
-          <div class="settings-item-body">
-            <div class="settings-item-name">数据管理</div>
-            <div class="settings-item-desc">备份、恢复或清空数据</div>
-          </div>
-          <div class="settings-item-arrow" id="dataDropdownArrow" style="transition:transform .2s">›</div>
-        </div>
-        <div id="dataDropdown" style="display:none;overflow:hidden;transition:max-height .25s ease-out">
-          <div class="settings-item settings-dropdown-item" onclick="openRecycleBin()">
-            <div class="settings-item-icon" style="color:var(--red);font-size:16px">🗑️</div>
-            <div class="settings-item-body">
-              <div class="settings-item-name">回收站</div>
-              <div class="settings-item-desc">恢复或永久删除已移除的记录</div>
-            </div>
-            <div class="settings-item-arrow">›</div>
-          </div>
-          <div class="settings-item settings-dropdown-item" onclick="exportData()">
-            <div class="settings-item-icon" style="font-size:16px">📤</div>
-            <div class="settings-item-body">
-              <div class="settings-item-name">导出数据</div>
-              <div class="settings-item-desc">将所有记录导出为JSON文件</div>
-            </div>
-            <div class="settings-item-arrow">›</div>
-          </div>
-          <div class="settings-item settings-dropdown-item" onclick="importDataPrompt()">
-            <div class="settings-item-icon" style="font-size:16px">📥</div>
-            <div class="settings-item-body">
-              <div class="settings-item-name">导入数据</div>
-              <div class="settings-item-desc">从JSON文件恢复记录</div>
-            </div>
-            <div class="settings-item-arrow">›</div>
-          </div>
-          <div class="settings-item settings-dropdown-item" onclick="clearAllData()">
-            <div class="settings-item-icon" style="color:var(--red);font-size:16px">🗑️</div>
-            <div class="settings-item-body">
-              <div class="settings-item-name" style="color:var(--red)">清空所有数据</div>
-              <div class="settings-item-desc">删除所有记录和自定义内容（不可恢复）</div>
-            </div>
-            <div class="settings-item-arrow" style="color:var(--red)">›</div>
-          </div>
-        </div>
-      </div>
 
-      <div class="settings-group">
-        <div class="settings-group-title">关于</div>
-        <div class="settings-item">
           <div class="settings-item-icon">ℹ️</div>
           <div class="settings-item-body">
             <div class="settings-item-name">版本</div>
