@@ -489,6 +489,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .settings-item-name{font-size:15px;font-weight:500;color:var(--text)}
 .settings-item-desc{font-size:12px;color:var(--text4);margin-top:2px}
 .settings-item-arrow{font-size:18px;color:var(--text4);flex-shrink:0}
+.settings-dropdown-item{margin-left:16px;margin-bottom:6px;width:calc(100% - 16px);border-radius:0 var(--radius) var(--radius) 0;box-sizing:border-box}
 
 /* ===== V19.11 Timeline Search ===== */
 .tl-search-bar{padding:0 20px 8px}
@@ -750,7 +751,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
           <div class="settings-item-arrow" id="profileDropdownArrow" style="transition:transform .2s">›</div>
         </div>
         <div id="profileDropdown" style="display:none;overflow:hidden;transition:max-height .25s ease-out">
-          <div class="settings-item" onclick="changeUserAvatar()" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="changeUserAvatar()">
             <div class="settings-item-icon" style="font-size:16px">📷</div>
             <div class="settings-item-body">
               <div class="settings-item-name">更换头像</div>
@@ -758,7 +759,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             </div>
             <div class="settings-item-arrow">›</div>
           </div>
-          <div class="settings-item" onclick="changeUserName()" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="changeUserName()">
             <div class="settings-item-icon" style="font-size:16px">📝</div>
             <div class="settings-item-body">
               <div class="settings-item-name">修改名字</div>
@@ -780,7 +781,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
           <div class="settings-item-arrow" id="themeDropdownArrow" style="transition:transform .2s">›</div>
         </div>
         <div id="themeDropdown" style="display:none;overflow:hidden;transition:max-height .25s ease-out">
-          <div class="settings-item" onclick="selectTheme('dark')" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="selectTheme('dark')">
             <div class="settings-item-icon" style="font-size:16px">🌙</div>
             <div class="settings-item-body">
               <div class="settings-item-name">深夜模式</div>
@@ -788,7 +789,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             </div>
             <div class="settings-item-arrow theme-check" id="themeCheckDark" style="display:none;color:var(--green);font-size:20px">✓</div>
           </div>
-          <div class="settings-item" onclick="selectTheme('light')" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="selectTheme('light')">
             <div class="settings-item-icon" style="font-size:16px">☀️</div>
             <div class="settings-item-body">
               <div class="settings-item-name">白天模式</div>
@@ -796,7 +797,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             </div>
             <div class="settings-item-arrow theme-check" id="themeCheckLight" style="display:none;color:var(--green);font-size:20px">✓</div>
           </div>
-          <div class="settings-item" onclick="selectTheme('auto')" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="selectTheme('auto')">
             <div class="settings-item-icon" style="font-size:16px">🔄</div>
             <div class="settings-item-body">
               <div class="settings-item-name">跟随系统</div>
@@ -834,7 +835,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
           <div class="settings-item-arrow" id="dataDropdownArrow" style="transition:transform .2s">›</div>
         </div>
         <div id="dataDropdown" style="display:none;overflow:hidden;transition:max-height .25s ease-out">
-          <div class="settings-item" onclick="openRecycleBin()" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="openRecycleBin()">
             <div class="settings-item-icon" style="color:var(--red);font-size:16px">🗑️</div>
             <div class="settings-item-body">
               <div class="settings-item-name">回收站</div>
@@ -842,7 +843,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             </div>
             <div class="settings-item-arrow">›</div>
           </div>
-          <div class="settings-item" onclick="exportData()" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="exportData()">
             <div class="settings-item-icon" style="font-size:16px">📤</div>
             <div class="settings-item-body">
               <div class="settings-item-name">导出数据</div>
@@ -850,7 +851,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             </div>
             <div class="settings-item-arrow">›</div>
           </div>
-          <div class="settings-item" onclick="importDataPrompt()" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="importDataPrompt()">
             <div class="settings-item-icon" style="font-size:16px">📥</div>
             <div class="settings-item-body">
               <div class="settings-item-name">导入数据</div>
@@ -858,7 +859,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
             </div>
             <div class="settings-item-arrow">›</div>
           </div>
-          <div class="settings-item" onclick="clearAllData()" style="padding-left:48px">
+          <div class="settings-item settings-dropdown-item" onclick="clearAllData()">
             <div class="settings-item-icon" style="color:var(--red);font-size:16px">🗑️</div>
             <div class="settings-item-body">
               <div class="settings-item-name" style="color:var(--red)">清空所有数据</div>
