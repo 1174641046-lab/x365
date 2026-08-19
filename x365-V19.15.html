@@ -591,23 +591,10 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       <div class="atmosphere-wrap" id="atmosphereText" style="position:relative;height:200px">
         <!-- 氛围文字层（动态生成，pointer-events:none 不阻挡按钮） -->
         <!-- 按钮区域（绝对定位在底部，z-index最高） -->
-        <div class="record-btn-wrap" id="modeBtnWrap" style="position:absolute;bottom:17px;left:50%;transform:translateX(-50%);z-index:10;gap:12px;padding:0">
-          <button class="mode-btn manual" id="manualBtn" onclick="openManualAdd()" style="width:80px;height:80px;background:var(--green);box-shadow:0 4px 24px rgba(48,209,88,.35)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" style="width:32px;height:32px;color:#fff">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </button>
-        </div>
+        <!-- V19.15: manual add button removed -->
       </div>
 
-      <div class="mode-label-below" id="modeLabelBelow" style="text-align:center;color:var(--text3);margin-top:1px;font-weight:600;color:var(--green);margin-top:8px;margin-bottom:10px">手动添加</div>
-      <textarea class="text-input" id="textInput" style="margin-top:5px" placeholder="或输入文字进行识别&#10;如：今天做了10个高抬腿，晚上出去散步30分钟"></textarea>
-      <div class="input-btns">
-        <button class="btn btn-primary" id="parseBtn" onclick="parseInput()">识别</button>
-        <button class="btn btn-ghost" onclick="clearInput()">清除</button>
-        
-      </div>
+      <textarea class="text-input" id="textInput" style="margin-top:5px;min-height:28px;padding:8px 16px" placeholder="长按可语音转文字，双击可手动添加记录" ondblclick="openManualAdd()" readonly></textarea>
     </div>
 
     <div class="parse-preview" id="parsePreview">
@@ -680,7 +667,6 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
     </div>
 
     <div class="subject-filter" id="stSubjectFilter"></div>
-    <div class="subject-filter" id="stActionFilter" style="display:none"></div>
 
     <div class="stats-hero" id="statsHero">
       <div class="sh-num num" id="heroTotal">0</div>
@@ -3594,6 +3580,65 @@ function clearInput(){
   document.getElementById('encourage').classList.remove('show');
 }
 
+var longPressTimer = null;
+function initTextInputLongPress(){
+  var el = document.getElementById('textInput');
+  if(!el) return;
+  el.addEventListener('touchstart', function(e){
+    longPressTimer = setTimeout(function(){ startVoiceInput(); }, 600);
+  }, {passive: true});
+  el.addEventListener('touchend', function(e){
+    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+  }, {passive: true});
+  el.addEventListener('touchmove', function(e){
+    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+  }, {passive: true});
+  el.addEventListener('mousedown', function(e){
+    longPressTimer = setTimeout(function(){ startVoiceInput(); }, 600);
+  });
+  el.addEventListener('mouseup', function(e){
+    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+  });
+  el.addEventListener('mouseleave', function(e){
+    if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer = null; }
+  });
+}
+
+function startVoiceInput(){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ showToast('当前浏览器不支持语音识别'); return; }
+  var recog = new SR();
+  recog.lang = 'zh-CN';
+  recog.continuous = false;
+  recog.interimResults = true;
+  var el = document.getElementById('textInput');
+  el.removeAttribute('readonly');
+  el.value = '';
+  el.setAttribute('placeholder', '正在融听...');
+  el.style.color = 'var(--green)';
+  recog.onresult = function(event){
+    var transcript = '';
+    for(var i = event.resultIndex; i < event.results.length; i++){
+      transcript += event.results[i][0].transcript;
+    }
+    el.value = transcript;
+  };
+  recog.onerror = function(event){
+    el.setAttribute('placeholder', '长按可语音转文字，双击可手动添加记录');
+    el.style.color = '';
+    el.setAttribute('readonly', '');
+    if(event.error === 'no-speech'){ showToast('未检测到语音'); }
+    else if(event.error === 'not-allowed'){ showToast('请允许麦克风权限'); }
+  };
+  recog.onend = function(){
+    el.setAttribute('placeholder', '长按可语音转文字，双击可手动添加记录');
+    el.style.color = '';
+    if(!el.value.trim()){ el.setAttribute('readonly', ''); }
+    if(el.value.trim()){ setTimeout(function(){ parseInput(); }, 300); }
+  };
+  try{ recog.start(); showToast('开始语音识别...'); }catch(e){}
+}
+
 // ===== 主体管理 =====
 function getSubject(id){
   var sub = STATE.subjects.find(function(s){return s.id === id});
@@ -4401,7 +4446,8 @@ function renderSubjectDiaries(){
       else lastDateLabel = lastDate.substring(5); // MM-DD
     }
 
-    html += '<div class="diary-card" onclick="switchPage(\'timeline\',document.querySelectorAll(\'.nav-item\')[1])">' +
+    var diaryId = 'diary_' + s.id;
+    html += '<div class="diary-card" onclick="toggleDiary(this,\''+diaryId+'\')">' +
       '<div class="dc-avatar" style="background:'+s.color+'22">'+s.emoji+'</div>' +
       '<div class="dc-body">' +
         '<div class="dc-name">'+s.name+'</div>' +
@@ -4409,11 +4455,51 @@ function renderSubjectDiaries(){
         (todaySummary ? '<div class="dc-today">今日：'+escapeHtml(todaySummary)+'</div>' :
           '<div class="dc-info" style="color:var(--text4)">今日暂无</div>') +
       '</div>' +
-      '<div class="dc-arrow">›</div>' +
+      '<div class="dc-arrow">∨</div>' +
     '</div>';
+    var todayDetailHtml = '<div class="diary-expand collapsed" id="'+diaryId+'" style="max-height:0;overflow:hidden;transition:max-height .2s">';
+    if(todayRecords.length > 0){
+      todayRecords.sort(function(a,b){ return (b.time||'').localeCompare(a.time||'') });
+      todayRecords.forEach(function(r){
+        r.actions.forEach(function(a){
+          todayDetailHtml += '<div style="padding:6px 16px 6px 56px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);border-bottom:1px solid var(--sep)">' +
+            '<span style="color:var(--text4);min-width:50px">'+(r.time||'').substring(0,5)+'</span>' +
+            '<span style="flex:1">'+a.icon+' '+escapeHtml(a.standardName)+'</span>' +
+            '<span style="color:var(--green);font-weight:600">'+a.quantity+'<span style="font-size:10px;color:var(--text4)">'+a.unit+'</span></span>' +
+          '</div>';
+        });
+      });
+    }else{
+      todayDetailHtml += '<div style="padding:12px 16px 12px 56px;font-size:13px;color:var(--text4)">今日暂无记录</div>';
+    }
+    todayDetailHtml += '</div>';
+    html += todayDetailHtml;
   });
 
   container.innerHTML = html;
+}
+
+function toggleDiary(btn, diaryId){
+  var body = document.getElementById(diaryId);
+  if(!body) return;
+  var isCollapsed = body.classList.contains('collapsed');
+  var arrow = btn.querySelector('.dc-arrow');
+  if(isCollapsed){
+    body.classList.remove('collapsed');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    if(arrow) arrow.textContent = '∨';
+    setTimeout(function(){
+      if(!body.classList.contains('collapsed')) body.style.maxHeight = 'none';
+    }, 200);
+  }else{
+    if(body.style.maxHeight === 'none' || body.style.maxHeight === ''){
+      body.style.maxHeight = body.scrollHeight + 'px';
+      body.offsetHeight;
+    }
+    body.classList.add('collapsed');
+    body.style.maxHeight = '0px';
+    if(arrow) arrow.textContent = '›';
+  }
 }
 
 // ===== 渲染 - 时间线 =====
@@ -4840,12 +4926,6 @@ function renderStats(){
   if(STATE.stFilter !== 'all'){
     records = records.filter(function(r){return r.subject === STATE.stFilter});
   }
-  // V19.14: 动作筛选
-  if(STATE.stActionFilter !== 'all'){
-    records = records.filter(function(r){
-      return r.actions.some(function(a){return a.standardName === STATE.stActionFilter});
-    });
-  }
 
   // 根据日期导航筛选记录
   var tab = STATE.currentStatTab;
@@ -5072,11 +5152,11 @@ function renderCumulative(records, title, subtitle){
       '<div class="cr-icon" style="background:'+sub.color+'22">'+sub.emoji+'</div>' +
       '<div class="cr-name">'+sub.name+'<span style="font-size:11px;color:var(--text4);margin-left:4px">'+d.count+'次 · '+Object.keys(d.items).length+'项</span></div>' +
       '<div class="cr-qty num">'+d.count+'<span class="u">次</span></div>' +
-      '<div class="sc-expand-btn" onclick="event.stopPropagation();toggleSubject(this,\''+subId+'\')" style="margin-left:4px">＞</div>' +
+      '<div class="sc-expand-btn" onclick="event.stopPropagation();toggleSubject(this,\''+subId+'\')" style="margin-left:4px">∨</div>' +
     '</div>';
     // 该主体下的动作明细（包裹在可折叠容器中，默认折叠，点击主体展开）
     // V19.14: 每个动作行可点击展开查看每次记录的时间明细
-    html += '<div class="sc-sub-body collapsed" id="subBody_'+subId+'" style="max-height:0;overflow:hidden">';
+    html += '<div class="sc-sub-body" id="subBody_'+subId+'">';
     var itemIdx = 0;
     Object.keys(d.items).sort(function(a,b){return d.items[b].qty - d.items[a].qty}).forEach(function(key){
       var item = d.items[key];
@@ -5115,6 +5195,21 @@ function renderCumulative(records, title, subtitle){
   html += renderWeightTrend(weightRecords);
 
   return html;
+}
+
+function showWeightTip(x, y, weight, color){
+  var containers = document.querySelectorAll('.weight-curve');
+  containers.forEach(function(c){
+    var existing = c.querySelector('.wt-tip');
+    if(existing) existing.remove();
+    var tip = document.createElement('div');
+    tip.className = 'wt-tip';
+    tip.style.cssText = 'position:absolute;left:'+x+'px;top:'+(y-22)+'px;background:'+color+';color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;pointer-events:none;white-space:nowrap;z-index:10;transform:translateX(-50%)';
+    tip.textContent = weight + '斤';
+    c.style.position = 'relative';
+    c.appendChild(tip);
+    setTimeout(function(){ if(tip.parentNode) tip.remove(); }, 3000);
+  });
 }
 
 function renderWeightTrend(records){
@@ -5200,7 +5295,7 @@ function renderWeightTrend(records){
         var x = i * stepX;
         var y = svgH - ((p.qty - yMin) / yRange) * svgH;
         var isLast = i === pts.length - 1;
-        curveHtml += '<circle cx="'+x+'" cy="'+y+'" r="'+ (isLast ? '4' : '2.5') +'" fill="'+sub.color+'" stroke="var(--card)" stroke-width="1.5"/>';
+        curveHtml += '<circle cx="'+x+'" cy="'+y+'" r="'+ (isLast ? '4' : '2.5') +'" fill="'+sub.color+'" stroke="var(--card)" stroke-width="1.5" style="cursor:pointer" onclick="showWeightTip('+x+','+y+','+p.qty.toFixed(1)+',\''+sub.color+'\')"/>';
       });
       
       curveHtml += '</svg></div>';
@@ -5581,53 +5676,10 @@ function setFilter(containerId, subjectId){
     STATE.stFilter = subjectId;
     STATE.stActionFilter = 'all';  // V19.14: 切换主体时重置动作筛选
     renderStats();
-    renderStActionFilter();
   }
   renderSubjectFilters();
 }
 
-// V19.14: 渲染统计页动作筛选器（根据选中主体动态生成）
-function renderStActionFilter(){
-  var container = document.getElementById('stActionFilter');
-  if(!container) return;
-  
-  if(STATE.stFilter === 'all'){
-    container.style.display = 'none';
-    container.innerHTML = '';
-    return;
-  }
-  
-  // 获取该主体下所有动作名（从全部记录中提取）
-  var actionNames = {};
-  STATE.records.forEach(function(r){
-    if(r.subject !== STATE.stFilter) return;
-    r.actions.forEach(function(a){
-      if(!actionNames[a.standardName]) actionNames[a.standardName] = {name: a.standardName, icon: a.icon};
-    });
-  });
-  
-  var names = Object.keys(actionNames).sort();
-  if(names.length === 0){
-    container.style.display = 'none';
-    container.innerHTML = '';
-    return;
-  }
-  
-  container.style.display = 'flex';
-  var html = '<div class="sf-chip sf-all '+(STATE.stActionFilter==='all'?'active':'')+'" onclick="setStActionFilter(\'all\')"><span class="sf-name">全部动作</span></div>';
-  names.forEach(function(name){
-    var a = actionNames[name];
-    var active = STATE.stActionFilter === name ? 'active' : '';
-    html += '<div class="sf-chip '+active+'" onclick="setStActionFilter(\''+escapeHtml(name).replace(/'/g,"\\'")+'\')"><span class="sf-emoji">'+(a.icon||'📝')+'</span><span class="sf-name">'+escapeHtml(name)+'</span></div>';
-  });
-  container.innerHTML = html;
-}
-
-function setStActionFilter(name){
-  STATE.stActionFilter = name;
-  renderStats();
-  renderStActionFilter();
-}
 
 // V19.14: 渲染打卡页动作筛选器（根据选中主体动态生成）
 function renderCalActionFilter(){
@@ -6594,7 +6646,7 @@ function switchPage(page, el){
   document.getElementById('page-'+page).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
   if(el) el.classList.add('active');
-  if(page === 'record'){ renderTodayOverview(); renderSubjectDiaries(); }
+  if(page === 'record'){ renderTodayOverview(); renderSubjectDiaries(); initTextInputLongPress(); }
   if(page === 'timeline'){ renderTimeline(); renderSubjectFilters(); renderDateFilter(); initScrollFloat(); }
   if(page === 'memory'){ renderMemoryPage(); }
   if(page === 'stats'){
@@ -6603,7 +6655,6 @@ function switchPage(page, el){
     updateDateLabel();
     renderStats();
     renderSubjectFilters();
-    renderStActionFilter();
     initScrollFloat();
   }
   if(page === 'calendar'){ renderCalendar(); renderSubjectFilters(); renderCalActionFilter(); initScrollFloat(); }
