@@ -6857,6 +6857,29 @@ function goBack(){
   }
 }
 
+// ===== 底部导航主页面顺序 =====
+var MAIN_PAGES = ['record', 'timeline', 'stats', 'calendar', 'settings'];
+
+function getNavTarget(page){
+  var idx = MAIN_PAGES.indexOf(page);
+  if(idx >= 0){
+    return MAIN_PAGES[(idx + 1) % MAIN_PAGES.length];
+  }
+  return null;
+}
+
+function getPageParent(page){
+  if(page === 'manual-add'){
+    return STATE.pageHistory.length > 0 ? STATE.pageHistory[STATE.pageHistory.length - 1] : 'record';
+  }
+  if(page === 'memory') return 'settings';
+  return null;
+}
+
+function isMainPage(page){
+  return MAIN_PAGES.indexOf(page) >= 0;
+}
+
 function initSwipeBack(){
   var startX, startY, startTime;
   var tracking = false;
@@ -6864,9 +6887,10 @@ function initSwipeBack(){
   var activePage = null;
   var directionLocked = false;
   var underlay = null;
+  var targetPage = null;
+  var swipeMode = null; // 'nav' or 'back'
 
-  function showUnderlay(){
-    var target = getBackTarget();
+  function showUnderlay(target){
     if(!target) return false;
     underlay = document.getElementById('page-' + target);
     if(!underlay || underlay === activePage) return false;
@@ -6910,15 +6934,28 @@ function initSwipeBack(){
       if(pp && pp.style.display === 'flex') return;
       var modal = document.getElementById('modalOverlay');
       if(modal && modal.classList.contains('show')) return;
-      var manualAdd = document.getElementById('page-manual-add');
-      if(STATE.pageHistory.length === 0 && !(manualAdd && manualAdd.classList.contains('active'))) return;
+
+      activePage = document.querySelector('.page.active');
+      if(!activePage) return;
+      var curId = activePage.id.replace('page-', '');
+
+      // Determine swipe target based on page type
+      if(isMainPage(curId)){
+        // Main page: navigate forward in nav
+        targetPage = getNavTarget(curId);
+        swipeMode = 'nav';
+      } else {
+        // Sub-page: go back to parent
+        targetPage = getPageParent(curId);
+        swipeMode = 'back';
+      }
+      if(!targetPage) return;
 
       startX = t.clientX;
       startY = t.clientY;
       startTime = Date.now();
       tracking = true;
       currentDx = 0;
-      activePage = document.querySelector('.page.active');
       directionLocked = false;
       underlay = null;
     } else {
@@ -6936,7 +6973,7 @@ function initSwipeBack(){
       if(Math.abs(dx) > 10 || Math.abs(dy) > 10){
         directionLocked = true;
         if(dx > 0 && Math.abs(dy) < Math.abs(dx)){
-          showUnderlay();
+          showUnderlay(targetPage);
         }
       }
     }
@@ -6972,6 +7009,7 @@ function initSwipeBack(){
     var threshold = window.innerWidth * 0.3;
 
     if(currentDx > threshold){
+      // Swipe complete
       activePage.style.transition = 'transform 0.25s ease-out';
       activePage.style.transform = 'translateX(100vw)';
       if(underlay){
@@ -6979,15 +7017,22 @@ function initSwipeBack(){
         underlay.style.transform = 'scale(1)';
       }
       var page = activePage;
+      var tp = targetPage;
+      var sm = swipeMode;
       setTimeout(function(){
         page.style.transition = '';
         page.style.transform = '';
         page.style.zIndex = '';
         page.style.position = '';
         hideUnderlay();
-        goBack();
+        if(sm === 'nav'){
+          switchPage(tp);
+        } else {
+          switchPage(tp, null, true);
+        }
       }, 250);
     } else if(currentDx > 0){
+      // Snap back
       activePage.style.transition = 'transform 0.25s ease-out';
       activePage.style.transform = 'translateX(0)';
       if(underlay){
@@ -7011,6 +7056,8 @@ function initSwipeBack(){
     }
     activePage = null;
     currentDx = 0;
+    targetPage = null;
+    swipeMode = null;
   }, {passive: true});
 }
 
