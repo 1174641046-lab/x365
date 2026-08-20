@@ -6894,19 +6894,8 @@ function isMainPage(page){ return MAIN_PAGES.indexOf(page) >= 0; }
 
 // 滑动手势管理
 function initSwipeBack(){
-  var startX, startY, curDx, tracking, animating, targetPage, edgeSide;
-
-  function isOverlayOpen(){
-    var mo = document.getElementById('modalOverlay');
-    if(mo && mo.classList.contains('show')) return true;
-    var pp = document.getElementById('parsePreview');
-    if(pp && pp.classList.contains('show')) return true;
-    return false;
-  }
-
-  function initSwipeBack(){
-    // 滑动手势交互已在 V19.25 中禁用
-  }
+  // 滑动手势交互已在 V19.25 中禁用
+}
 
 // ===== 工具函数 =====
 function formatDate(d){
