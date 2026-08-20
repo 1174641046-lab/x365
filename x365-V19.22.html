@@ -6924,15 +6924,15 @@ function initSwipeBack(){
   function getTargetPage(curId, x){
     var w = window.innerWidth;
     var isMain = isMainPage(curId);
-    // 左边缘起（手指在左侧向右移动）→ 前进
+    // 左边缘起（手指在左侧向右移动）→ 后退
     if(x < w * 0.18){
-      if(isMain) return getNextMainPage(curId);
-      else return getParentPage(curId); // 二级页右滑=返回
-    }
-    // 右边缘起（手指在右侧向左移动）→ 后退
-    if(x > w * 0.82){
       if(isMain) return getPrevMainPage(curId);
-      return null; // 二级页右边缘左滑不触发
+      else return getParentPage(curId); // 二级页=返回
+    }
+    // 右边缘起（手指在右侧向左移动）→ 前进
+    if(x > w * 0.82){
+      if(isMain) return getNextMainPage(curId);
+      return null; // 二级页不触发
     }
     return null;
   }
@@ -7004,9 +7004,9 @@ function initSwipeBack(){
       return;
     }
 
-    // 方向正确性检查
-    if(edgeSide === 'left' && dx < 0){ cancelSwipe(document.querySelector('.page.active')); return; } // 左边缘向右滑，不能向左
-    if(edgeSide === 'right' && dx > 0){ cancelSwipe(document.querySelector('.page.active')); return; } // 右边缘向左滑，不能向右
+    // 方向正确性检查: 左边缘向右滑=后退(dx>0是对的), 右边缘向左滑=前进(dx<0是对的)
+    if(edgeSide === 'left' && dx < 0){ cancelSwipe(document.querySelector('.page.active')); return; } // 左边缘不能向左
+    if(edgeSide === 'right' && dx > 0){ cancelSwipe(document.querySelector('.page.active')); return; } // 右边缘不能向右
 
     // 显示纯色背景
     showBg();
