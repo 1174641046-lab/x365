@@ -3755,6 +3755,7 @@ function initTextInputLongPress(){
     var t = e.touches[0];
     longPressStartX = t.clientX;
     longPressStartY = t.clientY;
+    el.readOnly = true; // V19.42: 先阻止键盘，若是单击在touchend恢复
     longPressTimer = setTimeout(function(){
       voiceTriggered = true;
       longPressTimer = null;
@@ -3769,6 +3770,7 @@ function initTextInputLongPress(){
       if(dx > 15 || dy > 15){
         clearTimeout(longPressTimer);
         longPressTimer = null;
+        el.readOnly = false; // V19.42: 移动取消长按，恢复可编辑
       }
     }
   }, {passive: true});
@@ -3789,13 +3791,15 @@ function initTextInputLongPress(){
       lastTapTime = 0;
       e.preventDefault();
       e.stopPropagation();
+      el.readOnly = false; // V19.42: 恢复可编辑
       openManualAdd();
       return;
     }
-    // 单击：直接 focus，不延迟
+    // 单击：恢复可编辑后直接focus，不延迟
     lastTapTime = now;
     lastTapX = t.clientX;
     lastTapY = t.clientY;
+    el.readOnly = false; // V19.42: 恢复可编辑
     el.focus();
     e.preventDefault();
     e.stopPropagation();
@@ -4370,6 +4374,9 @@ function saveEditKnownAction(idx){
 
   if(!newName){ showToast('动作名称不能为空'); return; }
 
+  // V19.42: 先保存旧名称再更新
+  var oldName = p.standardName;
+
   // 同步更新当前 pendingParsed 项
   p.standardName = newName;
   p.action = newName;
@@ -4377,7 +4384,6 @@ function saveEditKnownAction(idx){
   if(newIcon) p.icon = newIcon;
 
   // 如果修改了名称，把别名也加进去以便后续识别
-  var oldName = p.standardName;
   if(oldName !== newName){
     var aliases = [newName, oldName];
     if(p.rawText && p.rawText !== newName && p.rawText !== oldName){
