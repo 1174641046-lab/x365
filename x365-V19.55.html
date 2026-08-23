@@ -365,23 +365,23 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .cm-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--sep);padding-bottom:8px}
 .cm-tab{padding:6px 14px;border-radius:8px;color:var(--text3);margin-top:1px;color:var(--text3);cursor:pointer;transition:all .15s}
 .cm-tab.active{background:var(--green-bg);color:var(--green);font-weight:600}
-.cm-section{display:flex;flex-direction:column;gap:8px}
+.cm-section{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px}
 .cm-add-btn{
-  padding:10px 14px;background:var(--green-bg);color:var(--green);border-radius:var(--radius);
+  width:100%;padding:10px 14px;background:var(--green-bg);color:var(--green);border-radius:var(--radius);
   color:var(--text3);margin-top:1px;font-weight:600;cursor:pointer;text-align:center;transition:background .15s
 }
 .cm-add-btn:active{background:var(--green-dim)}
 .cm-item{
-  background:var(--card);border-radius:var(--radius);padding:12px;display:flex;
-  align-items:center;gap:10px;transition:background .15s
+  width:calc(50% - 4px);background:var(--card);border-radius:var(--radius);padding:10px;
+  display:flex;flex-direction:column;gap:6px;transition:background .15s
 }
-.cm-item-info{flex:1;min-width:0}
-.cm-item-emoji{font-size:22px;margin-bottom:2px}
-.cm-item-name{font-size:14px;font-weight:600;color:var(--text)}
-.cm-item-keywords{font-size:11px;color:var(--text4);margin-top:2px}
-.cm-item-actions{display:flex;gap:6px;flex-shrink:0}
+.cm-item-info{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
+.cm-item-emoji{font-size:20px;flex-shrink:0}
+.cm-item-name{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cm-item-keywords{font-size:10px;color:var(--text4);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cm-item-actions{display:flex;gap:4px}
 .cm-item-btn{
-  padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;
+  padding:3px 8px;border-radius:6px;font-size:10px;cursor:pointer;
   background:var(--card2);color:var(--text4);transition:all .15s
 }
 .cm-item-btn.delete:active{background:var(--red);color:#fff}
@@ -4511,6 +4511,7 @@ function saveEditKnownAction(idx){
 
 var memoryReturnPage = 'settings';
 var memoryActionFilter = 'all';
+var memoryActionSubjectFilter = 'all';
 
 function openCustomMemoryLibrary(){
   // Track which page we came from
@@ -4529,6 +4530,7 @@ function memoryGoBack(){
 function renderMemoryPage(){
   // Reset filter
   memoryActionFilter = 'all';
+  memoryActionSubjectFilter = 'all';
   // Activate first tab
   var tabs = document.querySelectorAll('.cm-tab');
   tabs.forEach(function(t,i){t.classList.toggle('active', i===0)});
@@ -4576,40 +4578,99 @@ function showMemoryTab(el){
     html += '</div>';
     panel.innerHTML = html;
   } else {
-    // Actions tab - with category filter
+    // Actions tab - with category + subject filter
     var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
+
+    // Build action-subject map from historical records
+    var actionSubjects = {};
+    STATE.records.forEach(function(rec){
+      var subId = rec.subject || 'user';
+      if(rec.actions){
+        rec.actions.forEach(function(a){
+          var aname = a.standardName || a.action;
+          if(!aname) return;
+          if(!actionSubjects[aname]) actionSubjects[aname] = {};
+          actionSubjects[aname][subId] = (actionSubjects[aname][subId] || 0) + 1;
+        });
+      }
+    });
+
+    // Get all subjects for filter bar
+    var allSubjects = [{id:'user',name:'我',emoji:'👤'}].concat(STATE.subjects, STATE.customSubjects);
+
+    // Category filter bar
     var filterHtml = '<div class="memory-filter-bar">';
-    filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter==='all'?' active':'')+'" onclick="setMemoryActionFilter(\'all\')">全部</div>';
+    filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter==='all'?' active':'')+'" onclick="setMemoryActionFilter(\'all\')">全部分类</div>';
     cats.forEach(function(c){
       filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter===c?' active':'')+'" onclick="setMemoryActionFilter(\''+c+'\')">'+c+'</div>';
+    });
+    filterHtml += '</div>';
+    // Subject filter bar
+    filterHtml += '<div class="memory-filter-bar" style="margin-top:4px">';
+    filterHtml += '<div class="memory-filter-chip'+(memoryActionSubjectFilter==='all'?' active':'')+'" onclick="setMemoryActionSubjectFilter(\'all\')">全部主体</div>';
+    allSubjects.forEach(function(s){
+      filterHtml += '<div class="memory-filter-chip'+(memoryActionSubjectFilter===s.id?' active':'')+'" onclick="setMemoryActionSubjectFilter(\''+s.id+'\')">'+s.emoji+' '+escapeHtml(s.name)+'</div>';
     });
     filterHtml += '</div>';
     filterBar.innerHTML = filterHtml;
 
     var html = '<div class="cm-section">';
     html += '<div class="cm-add-btn" onclick="showAddActionForm()">+ 添加自定义动作</div>';
-    var actionNames = Object.keys(STATE.customActions);
+
+    // Merge built-in and custom actions
+    var mergedActions = {};
+    Object.keys(ACTION_DICT).forEach(function(name){
+      var a = ACTION_DICT[name];
+      var custom = STATE.customActions[name];
+      if(custom){
+        mergedActions[name] = custom;
+        mergedActions[name].isBuiltin = false;
+        mergedActions[name].isModified = true;
+      } else {
+        mergedActions[name] = {cat:a.cat, icon:a.icon, unit:a.unit, aliases:a.aliases, durationPerTime:0, isBuiltin:true};
+      }
+    });
+    Object.keys(STATE.customActions).forEach(function(name){
+      if(!mergedActions[name]){
+        mergedActions[name] = STATE.customActions[name];
+        mergedActions[name].isBuiltin = false;
+      }
+    });
+
+    var actionNames = Object.keys(mergedActions);
     // Filter by category
     if(memoryActionFilter !== 'all'){
       actionNames = actionNames.filter(function(n){
-        return STATE.customActions[n].cat === memoryActionFilter;
+        return mergedActions[n].cat === memoryActionFilter;
       });
     }
+    // Filter by subject
+    if(memoryActionSubjectFilter !== 'all'){
+      actionNames = actionNames.filter(function(n){
+        return actionSubjects[n] && actionSubjects[n][memoryActionSubjectFilter];
+      });
+    }
+
     if(actionNames.length === 0){
-      html += '<div style="text-align:center;padding:20px;color:var(--text4)">'+(memoryActionFilter==='all'?'还没有自定义动作':'该分类下没有自定义动作')+'</div>';
+      html += '<div style="width:100%;text-align:center;padding:20px;color:var(--text4)">没有符合条件的动作</div>';
     } else {
       actionNames.forEach(function(name){
-        var a = STATE.customActions[name];
+        var a = mergedActions[name];
         var catColor = getCatColor(a.cat);
+        var label = a.isBuiltin ? '内置' : (a.isModified ? '已改' : '自定义');
         html += '<div class="cm-item">';
         html += '<div class="cm-item-info">';
         html += '<div class="cm-item-emoji">'+a.icon+'</div>';
-        html += '<div class="cm-item-name">'+escapeHtml(name)+'<span class="cal-cat-color-dot" style="background:'+catColor+';margin-left:8px"></span><span style="font-size:11px;color:var(--text4);margin-left:8px">'+a.cat+' · '+a.unit+(a.durationPerTime ? ' · 单次'+a.durationPerTime+'分钟' : '')+'</span></div>';
-        html += '<div class="cm-item-keywords">别名：'+escapeHtml((a.aliases||[]).join('、'))+'</div>';
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div class="cm-item-name">'+escapeHtml(name)+'<span class="cal-cat-color-dot" style="background:'+catColor+';margin-left:6px"></span></div>';
+        html += '<div class="cm-item-keywords">'+a.cat+' · '+a.unit+' · '+label+'</div>';
+        html += '</div>';
         html += '</div>';
         html += '<div class="cm-item-actions">';
         html += '<div class="cm-item-btn edit" data-action-name="'+name+'" onclick="showEditActionForm(this.dataset.actionName)">编辑</div>';
-        html += '<div class="cm-item-btn delete" data-action-name="'+name+'" onclick="deleteCustomActionBtn(this)">删除</div>';
+        if(!a.isBuiltin){
+          html += '<div class="cm-item-btn delete" data-action-name="'+name+'" onclick="deleteCustomActionBtn(this)">删除</div>';
+        }
         html += '</div></div>';
       });
     }
@@ -4620,12 +4681,11 @@ function showMemoryTab(el){
 
 function setMemoryActionFilter(cat){
   memoryActionFilter = cat;
-  // Update chip styles
-  document.querySelectorAll('.memory-filter-chip').forEach(function(c){
-    c.classList.remove('active');
-  });
-  event.target.classList.add('active');
-  // Re-render actions list
+  showMemoryTab(document.querySelector('.cm-tab[data-tab="actions"]'));
+}
+
+function setMemoryActionSubjectFilter(subId){
+  memoryActionSubjectFilter = subId;
   showMemoryTab(document.querySelector('.cm-tab[data-tab="actions"]'));
 }
 
@@ -4677,10 +4737,16 @@ function saveEditSubject(id){
 }
 
 function showEditActionForm(name){
+  // Check custom actions first, then built-in
   var a = STATE.customActions[name];
+  var isBuiltin = false;
+  if(!a){
+    a = ACTION_DICT[name];
+    if(a) isBuiltin = true;
+  }
   if(!a) return;
   var html = '<div class="memory-form-card">';
-  html += '<div class="ms-title">编辑自定义动作</div>';
+  html += '<div class="ms-title">'+(isBuiltin?'编辑内置动作':'编辑自定义动作')+'</div>';
   html += '<div class="ms-label">动作名称</div>';
   html += '<input type="text" id="editActionName" value="'+escapeHtml(name)+'">';
   html += '<div class="ms-label">emoji 图标</div>';
@@ -4716,6 +4782,8 @@ function showEditActionForm(name){
 
 function saveEditAction(oldName){
   var a = STATE.customActions[oldName];
+  var isBuiltin = !a;
+  if(isBuiltin) a = ACTION_DICT[oldName];
   if(!a) return;
   var newName = document.getElementById('editActionName').value.trim();
   var icon = document.getElementById('editActionIcon').value.trim() || '📝';
@@ -4726,19 +4794,25 @@ function saveEditAction(oldName){
   var durationPerTime = parseFloat(document.getElementById('editDuration').value) || 0;
   if(!newName){ showToast('请输入名称'); return; }
   
-  // If name changed, delete old and create new
+  var aliases = aliasesText ? aliasesText.split(/[,，]/).map(function(x){return x.trim()}).filter(function(x){return x}) : [];
+  if(aliases.indexOf(newName) < 0) aliases.push(newName);
+
   if(newName !== oldName){
-    delete STATE.customActions[oldName];
-    var aliases = aliasesText ? aliasesText.split(/[,，]/).map(function(x){return x.trim()}).filter(function(x){return x}) : [];
-    if(aliases.indexOf(newName) < 0) aliases.push(newName);
+    // Name changed - delete old custom entry if exists, create new
+    if(!isBuiltin) delete STATE.customActions[oldName];
     STATE.customActions[newName] = {cat:cat, icon:icon, unit:unit, aliases:aliases, durationPerTime:durationPerTime};
   } else {
-    a.cat = cat;
-    a.icon = icon;
-    a.unit = unit;
-    a.durationPerTime = durationPerTime;
-    a.aliases = aliasesText ? aliasesText.split(/[,，]/).map(function(x){return x.trim()}).filter(function(x){return x}) : [newName];
-    if(a.aliases.indexOf(newName) < 0) a.aliases.push(newName);
+    if(isBuiltin){
+      // Creating override for built-in action
+      STATE.customActions[oldName] = {cat:cat, icon:icon, unit:unit, aliases:aliases, durationPerTime:durationPerTime};
+    } else {
+      // Update existing custom action
+      a.cat = cat;
+      a.icon = icon;
+      a.unit = unit;
+      a.durationPerTime = durationPerTime;
+      a.aliases = aliases;
+    }
   }
   
   // Save category color
