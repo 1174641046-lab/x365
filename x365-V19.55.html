@@ -5001,11 +5001,13 @@ function renderQuickActions(){
 function openQuickAddModal(name){
   var icon = getActionIcon(name, null, null);
   
-  // 查找该动作历史记录中使用的单位、category和主体
+  // 查找该动作历史记录中使用的单位、category、主体和常用数量
   var defaultUnit = '次';
   var foundCategory = '其他';
   var defaultSubject = 'user';
   var foundIcon = null;
+  var defaultQty = 1;
+  var qtyCounts = {};
   for(var i=0; i<STATE.records.length; i++){
     var rec = STATE.records[i];
     for(var j=0; j<rec.actions.length; j++){
@@ -5015,10 +5017,21 @@ function openQuickAddModal(name){
         if(a.category) foundCategory = a.category;
         if(rec.subject) defaultSubject = rec.subject;
         if(a.icon) foundIcon = a.icon;
+        if(a.quantity){
+          var qKey = String(a.quantity);
+          qtyCounts[qKey] = (qtyCounts[qKey] || 0) + 1;
+        }
         break;
       }
     }
-    if(defaultUnit !== '次') break;
+  }
+  // 找出最常用的数量
+  var maxCount = 0;
+  for(var q in qtyCounts){
+    if(qtyCounts[q] > maxCount){
+      maxCount = qtyCounts[q];
+      defaultQty = parseFloat(q);
+    }
   }
   
   var html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
@@ -5043,7 +5056,7 @@ function openQuickAddModal(name){
   
   html += '<div style="margin-bottom:12px">';
   html += '<div style="font-size:12px;color:var(--text4);margin-bottom:4px">数量</div>';
-  html += '<input type="number" id="quickQty" value="1" min="0.1" step="0.1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:16px;outline:none;text-align:center;font-weight:600">';
+  html += '<input type="number" id="quickQty" value="'+defaultQty+'" min="0.1" step="0.1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:16px;outline:none;text-align:center;font-weight:600">';
   html += '</div>';
   html += '<div style="margin-bottom:16px">';
   html += '<div style="font-size:12px;color:var(--text4);margin-bottom:4px">单位</div>';
