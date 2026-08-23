@@ -4563,14 +4563,17 @@ function showMemoryTab(el){
     filterBar.innerHTML = '';
     var html = '<div class="cm-section">';
     html += '<div class="cm-add-btn" onclick="showAddSubjectForm()">+ 添加自定义主体</div>';
-    // Show built-in subjects (read-only)
+    // Show built-in subjects (editable)
     html += '<div style="font-size:11px;color:var(--text4);padding:8px 0 4px">内置主体</div>';
     STATE.subjects.forEach(function(s){
       var catColor = s.color || '#30D158';
-      html += '<div class="cm-item" style="opacity:.7">';
+      html += '<div class="cm-item">';
       html += '<div class="cm-item-info">';
       html += '<div class="cm-item-emoji">'+s.emoji+'</div>';
       html += '<div class="cm-item-name">'+escapeHtml(s.name)+'<span class="cal-cat-color-dot" style="background:'+catColor+';margin-left:8px"></span></div>';
+      html += '</div>';
+      html += '<div class="cm-item-actions">';
+      html += '<div class="cm-item-btn edit" data-sub-id="'+s.id+'" onclick="showEditSubjectForm(this.dataset.subId)">编辑</div>';
       html += '</div></div>';
     });
     // Custom subjects with edit/delete
@@ -4650,8 +4653,8 @@ function showMemoryTab(el){
       }
     });
 
-    // Get all subjects for filter bar
-    var allSubjects = [{id:'user',name:'我',emoji:'👤'}].concat(STATE.subjects, STATE.customSubjects);
+    // Get all subjects for filter bar (exclude 'user')
+    var allSubjects = STATE.subjects.filter(function(s){return s.id !== 'user'}).concat(STATE.customSubjects);
 
     // Subject filter bar (on top)
     var filterHtml = '<div class="memory-filter-bar">';
@@ -4724,9 +4727,14 @@ function setMemoryActionSubjectFilter(subId){
 
 function showEditSubjectForm(id){
   var s = STATE.customSubjects.find(function(x){return x.id === id});
+  var isBuiltin = false;
+  if(!s){
+    s = STATE.subjects.find(function(x){return x.id === id});
+    if(s) isBuiltin = true;
+  }
   if(!s) return;
   var html = '<div class="memory-form-card">';
-  html += '<div class="ms-title">编辑自定义主体</div>';
+  html += '<div class="ms-title">'+(isBuiltin?'编辑内置主体':'编辑自定义主体')+'</div>';
   html += '<div class="ms-label">主体名称</div>';
   html += '<input type="text" id="editSubName" value="'+escapeHtml(s.name)+'">';
   html += '<div class="ms-label">emoji 图标</div>';
@@ -4752,6 +4760,9 @@ function showEditSubjectForm(id){
 
 function saveEditSubject(id){
   var s = STATE.customSubjects.find(function(x){return x.id === id});
+  if(!s){
+    s = STATE.subjects.find(function(x){return x.id === id});
+  }
   if(!s) return;
   var name = document.getElementById('editSubName').value.trim();
   var emoji = document.getElementById('editSubEmoji').value.trim() || '🐱';
