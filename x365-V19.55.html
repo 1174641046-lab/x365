@@ -365,24 +365,37 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .cm-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--sep);padding-bottom:8px}
 .cm-tab{padding:6px 14px;border-radius:8px;color:var(--text3);margin-top:1px;color:var(--text3);cursor:pointer;transition:all .15s}
 .cm-tab.active{background:var(--green-bg);color:var(--green);font-weight:600}
-.cm-section{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px}
+.cm-section{display:flex;flex-direction:column;gap:8px}
+.cm-section-actions{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px}
 .cm-add-btn{
-  width:100%;padding:10px 14px;background:var(--green-bg);color:var(--green);border-radius:var(--radius);
+  padding:10px 14px;background:var(--green-bg);color:var(--green);border-radius:var(--radius);
   color:var(--text3);margin-top:1px;font-weight:600;cursor:pointer;text-align:center;transition:background .15s
 }
+.cm-section-actions .cm-add-btn{width:100%}
 .cm-add-btn:active{background:var(--green-dim)}
 .cm-item{
-  width:calc(50% - 4px);background:var(--card);border-radius:var(--radius);padding:10px;
-  display:flex;flex-direction:column;gap:6px;transition:background .15s
+  background:var(--card);border-radius:var(--radius);padding:12px;display:flex;
+  align-items:center;gap:10px;transition:background .15s
 }
-.cm-item-info{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
-.cm-item-emoji{font-size:20px;flex-shrink:0}
-.cm-item-name{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cm-item-keywords{font-size:10px;color:var(--text4);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cm-item-actions{display:flex;gap:4px}
+.cm-section-actions .cm-item{
+  width:calc(50% - 4px);padding:10px;flex-direction:column;gap:6px
+}
+.cm-item-info{flex:1;min-width:0}
+.cm-section-actions .cm-item-info{display:flex;align-items:center;gap:6px}
+.cm-item-emoji{font-size:22px;margin-bottom:2px}
+.cm-section-actions .cm-item-emoji{font-size:20px;flex-shrink:0;margin-bottom:0}
+.cm-item-name{font-size:14px;font-weight:600;color:var(--text)}
+.cm-section-actions .cm-item-name{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cm-item-keywords{font-size:11px;color:var(--text4);margin-top:2px}
+.cm-section-actions .cm-item-keywords{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cm-item-actions{display:flex;gap:6px;flex-shrink:0}
+.cm-section-actions .cm-item-actions{gap:4px}
 .cm-item-btn{
-  padding:3px 8px;border-radius:6px;font-size:10px;cursor:pointer;
+  padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;
   background:var(--card2);color:var(--text4);transition:all .15s
+}
+.cm-section-actions .cm-item-btn{
+  padding:3px 8px;font-size:10px
 }
 .cm-item-btn.delete:active{background:var(--red);color:#fff}
 .cm-btn{
@@ -970,6 +983,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       <div class="cm-tabs">
         <div class="cm-tab active" data-tab="subjects" onclick="showMemoryTab(this)">主体库</div>
         <div class="cm-tab" data-tab="actions" onclick="showMemoryTab(this)">动作库</div>
+        <div class="cm-tab" data-tab="builtin" onclick="showMemoryTab(this)">系统动作库</div>
       </div>
       <div id="memoryFilterBar"></div>
       <div id="memoryPanel"></div>
@@ -4577,8 +4591,49 @@ function showMemoryTab(el){
     });
     html += '</div>';
     panel.innerHTML = html;
+  } else if(tab === 'builtin'){
+    // Built-in actions tab - system action library
+    var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
+    var filterHtml = '<div class="memory-filter-bar">';
+    filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter==='all'?' active':'')+'" onclick="setMemoryActionFilter(\'all\')">全部分类</div>';
+    cats.forEach(function(c){
+      filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter===c?' active':'')+'" onclick="setMemoryActionFilter(\''+c+'\')">'+c+'</div>';
+    });
+    filterHtml += '</div>';
+    filterBar.innerHTML = filterHtml;
+
+    var html = '<div class="cm-section-actions">';
+    var builtinNames = Object.keys(ACTION_DICT);
+    if(memoryActionFilter !== 'all'){
+      builtinNames = builtinNames.filter(function(n){
+        return ACTION_DICT[n].cat === memoryActionFilter;
+      });
+    }
+    if(builtinNames.length === 0){
+      html += '<div style="width:100%;text-align:center;padding:20px;color:var(--text4)">该分类下没有系统动作</div>';
+    } else {
+      builtinNames.forEach(function(name){
+        var a = ACTION_DICT[name];
+        var catColor = getCatColor(a.cat);
+        var isModified = !!STATE.customActions[name];
+        var label = isModified ? '已改' : '内置';
+        html += '<div class="cm-item">';
+        html += '<div class="cm-item-info">';
+        html += '<div class="cm-item-emoji">'+a.icon+'</div>';
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div class="cm-item-name">'+escapeHtml(name)+'<span class="cal-cat-color-dot" style="background:'+catColor+';margin-left:6px"></span></div>';
+        html += '<div class="cm-item-keywords">'+a.cat+' · '+a.unit+' · '+label+'</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="cm-item-actions">';
+        html += '<div class="cm-item-btn edit" data-action-name="'+name+'" onclick="showEditActionForm(this.dataset.actionName)">编辑</div>';
+        html += '</div></div>';
+      });
+    }
+    html += '</div>';
+    panel.innerHTML = html;
   } else {
-    // Actions tab - with category + subject filter
+    // Actions tab - custom actions only, with subject + category filter
     var cats = ['运动','学习','饮食','休息','工作','生活','社交','健康','种植','其他'];
 
     // Build action-subject map from historical records
@@ -4598,66 +4653,44 @@ function showMemoryTab(el){
     // Get all subjects for filter bar
     var allSubjects = [{id:'user',name:'我',emoji:'👤'}].concat(STATE.subjects, STATE.customSubjects);
 
-    // Category filter bar
+    // Subject filter bar (on top)
     var filterHtml = '<div class="memory-filter-bar">';
-    filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter==='all'?' active':'')+'" onclick="setMemoryActionFilter(\'all\')">全部分类</div>';
-    cats.forEach(function(c){
-      filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter===c?' active':'')+'" onclick="setMemoryActionFilter(\''+c+'\')">'+c+'</div>';
-    });
-    filterHtml += '</div>';
-    // Subject filter bar
-    filterHtml += '<div class="memory-filter-bar" style="margin-top:4px">';
     filterHtml += '<div class="memory-filter-chip'+(memoryActionSubjectFilter==='all'?' active':'')+'" onclick="setMemoryActionSubjectFilter(\'all\')">全部主体</div>';
     allSubjects.forEach(function(s){
       filterHtml += '<div class="memory-filter-chip'+(memoryActionSubjectFilter===s.id?' active':'')+'" onclick="setMemoryActionSubjectFilter(\''+s.id+'\')">'+s.emoji+' '+escapeHtml(s.name)+'</div>';
     });
     filterHtml += '</div>';
+    // Category filter bar (below subject)
+    filterHtml += '<div class="memory-filter-bar" style="margin-top:4px">';
+    filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter==='all'?' active':'')+'" onclick="setMemoryActionFilter(\'all\')">全部分类</div>';
+    cats.forEach(function(c){
+      filterHtml += '<div class="memory-filter-chip'+(memoryActionFilter===c?' active':'')+'" onclick="setMemoryActionFilter(\''+c+'\')">'+c+'</div>';
+    });
+    filterHtml += '</div>';
     filterBar.innerHTML = filterHtml;
 
-    var html = '<div class="cm-section">';
+    var html = '<div class="cm-section-actions">';
     html += '<div class="cm-add-btn" onclick="showAddActionForm()">+ 添加自定义动作</div>';
-
-    // Merge built-in and custom actions
-    var mergedActions = {};
-    Object.keys(ACTION_DICT).forEach(function(name){
-      var a = ACTION_DICT[name];
-      var custom = STATE.customActions[name];
-      if(custom){
-        mergedActions[name] = custom;
-        mergedActions[name].isBuiltin = false;
-        mergedActions[name].isModified = true;
-      } else {
-        mergedActions[name] = {cat:a.cat, icon:a.icon, unit:a.unit, aliases:a.aliases, durationPerTime:0, isBuiltin:true};
-      }
-    });
-    Object.keys(STATE.customActions).forEach(function(name){
-      if(!mergedActions[name]){
-        mergedActions[name] = STATE.customActions[name];
-        mergedActions[name].isBuiltin = false;
-      }
-    });
-
-    var actionNames = Object.keys(mergedActions);
-    // Filter by category
-    if(memoryActionFilter !== 'all'){
-      actionNames = actionNames.filter(function(n){
-        return mergedActions[n].cat === memoryActionFilter;
-      });
-    }
+    var actionNames = Object.keys(STATE.customActions);
     // Filter by subject
     if(memoryActionSubjectFilter !== 'all'){
       actionNames = actionNames.filter(function(n){
         return actionSubjects[n] && actionSubjects[n][memoryActionSubjectFilter];
       });
     }
-
+    // Filter by category
+    if(memoryActionFilter !== 'all'){
+      actionNames = actionNames.filter(function(n){
+        return STATE.customActions[n].cat === memoryActionFilter;
+      });
+    }
     if(actionNames.length === 0){
       html += '<div style="width:100%;text-align:center;padding:20px;color:var(--text4)">没有符合条件的动作</div>';
     } else {
       actionNames.forEach(function(name){
-        var a = mergedActions[name];
+        var a = STATE.customActions[name];
         var catColor = getCatColor(a.cat);
-        var label = a.isBuiltin ? '内置' : (a.isModified ? '已改' : '自定义');
+        var label = ACTION_DICT[name] ? '已改' : '自定义';
         html += '<div class="cm-item">';
         html += '<div class="cm-item-info">';
         html += '<div class="cm-item-emoji">'+a.icon+'</div>';
@@ -4668,9 +4701,7 @@ function showMemoryTab(el){
         html += '</div>';
         html += '<div class="cm-item-actions">';
         html += '<div class="cm-item-btn edit" data-action-name="'+name+'" onclick="showEditActionForm(this.dataset.actionName)">编辑</div>';
-        if(!a.isBuiltin){
-          html += '<div class="cm-item-btn delete" data-action-name="'+name+'" onclick="deleteCustomActionBtn(this)">删除</div>';
-        }
+        html += '<div class="cm-item-btn delete" data-action-name="'+name+'" onclick="deleteCustomActionBtn(this)">删除</div>';
         html += '</div></div>';
       });
     }
@@ -4681,7 +4712,8 @@ function showMemoryTab(el){
 
 function setMemoryActionFilter(cat){
   memoryActionFilter = cat;
-  showMemoryTab(document.querySelector('.cm-tab[data-tab="actions"]'));
+  var activeTab = document.querySelector('.cm-tab.active');
+  showMemoryTab(activeTab);
 }
 
 function setMemoryActionSubjectFilter(subId){
