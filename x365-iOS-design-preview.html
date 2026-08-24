@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>x365 iOS Design Preview</title>
+<style>
+/* ===== iOS Design System ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  /* iOS Dark Mode Colors */
+  --bg:#000000; --bg2:#0A0A0A; --card:#1C1C1E; --card2:#2C2C2E; --card3:#3A3A3C;
+  --text:#FFFFFF; --text2:#FFFFFFCC; --text3:#FFFFFF8F; --text4:#FFFFFF55; --text5:#FFFFFF30;
+  --green:#30D158; --green-dim:#30D15833; --green-bg:#30D1581A; --green-dark:#248A3D;
+  --blue:#0A84FF; --blue-dim:#0A84FF33; --blue-bg:#0A84FF1A;
+  --yellow:#FFD60A; --yellow-dim:#FFD60A33; --yellow-bg:#FFD60A1A;
+  --red:#FF453A; --orange:#FF9F0A; --purple:#BF5AF2; --teal:#40C8E0; --pink:#FF375F; --indigo:#5E5CE6;
+  --sep:rgba(255,255,255,.06); --sep2:rgba(255,255,255,.1);
+  --nav-bg:rgba(0,0,0,.72); --header-bg:rgba(0,0,0,.72); --modal-overlay:rgba(0,0,0,.6);
+  --shadow:0 2px 10px rgba(0,0,0,.3); --shadow-lg:0 8px 30px rgba(0,0,0,.5);
+  --nav-h:48px; --safe-b:env(safe-area-inset-bottom,0px);
+  --radius:10px; --radius-lg:14px; --radius-xl:18px; --radius-xxl:22px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+[data-theme="light"]{
+  --bg:#F2F2F7; --bg2:#FFFFFF; --card:#FFFFFF; --card2:#F2F2F7; --card3:#E5E5EA;
+  --text:#000000; --text2:#000000CC; --text3:#0000008F; --text4:#00000055; --text5:#00000030;
+  --green:#34C759; --green-dim:#34C75933; --green-bg:#34C7591A; --green-dark:#248A3D;
+  --blue:#007AFF; --blue-dim:#007AFF33; --blue-bg:#007AFF1A;
+  --yellow:#FFCC00; --yellow-dim:#FFCC0033; --yellow-bg:#FFCC001A;
+  --red:#FF3B30; --orange:#FF9500; --purple:#AF52DE; --teal:#5AC8FA; --pink:#FF2D55; --indigo:#5856D6;
+  --sep:rgba(0,0,0,.05); --sep2:rgba(0,0,0,.08);
+  --nav-bg:rgba(255,255,255,.72); --header-bg:rgba(255,255,255,.72); --modal-overlay:rgba(0,0,0,.4);
+  --shadow:0 1px 4px rgba(0,0,0,.06); --shadow-lg:0 4px 20px rgba(0,0,0,.1);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum"}
+
+/* ===== App Shell ===== */
+#app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;background:var(--bg);overflow:hidden}
+.page{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;background:var(--bg)}
+.page.active{display:block}
+.page::-webkit-scrollbar{width:0;display:none}
+.page{scrollbar-width:none}
+
+/* ===== iOS Header ===== */
+.nav-header{
+  position:sticky;top:0;z-index:50;
+  background:var(--header-bg);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+  padding:10px 16px 8px;
+}
+.nav-header-row{display:flex;justify-content:space-between;align-items:flex-start}
+.nav-header-left{flex:1;min-width:0}
+.nav-header h1{font-size:30px;font-weight:700;letter-spacing:-.6px}
+.nav-header .sub{font-size:13px;color:var(--text3);margin-top:1px}
+.header-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:10px;margin-top:2px}
+.header-btn{
+  width:32px;height:32px;border-radius:50%;background:var(--card);
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  cursor:pointer;transition:transform .15s;color:var(--text3);flex-shrink:0;
+}
+.header-btn:active{transform:scale(.92)}
+.header-btn.avatar{background:linear-gradient(135deg,var(--green),var(--teal));color:#fff;font-size:13px;font-weight:600}
+
+/* ===== Bottom Nav ===== */
+.bottom-nav{
+  position:absolute;bottom:0;left:0;right:0;height:calc(var(--nav-h) + var(--safe-b));
+  background:var(--nav-bg);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
+  border-top:var(--sep);display:flex;padding-bottom:var(--safe-b);z-index:100;
+}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:var(--text4);cursor:pointer;transition:color .15s}
+.nav-item.active{color:var(--green)}
+.nav-item svg{width:22px;height:22px}
+.nav-item span{font-size:10px;font-weight:500}
+
+/* ===== Record Page ===== */
+.record-page{padding-bottom:calc(var(--nav-h) + var(--safe-b) + 100px)}
+.input-section{padding:0 16px 8px}
+/* Subject Bar - iOS segmented style */
+.subject-bar{display:flex;gap:6px;padding:8px 16px 0;overflow-x:auto;scrollbar-width:none}
+.subject-bar::-webkit-scrollbar{display:none}
+.subject-chip{
+  display:flex;align-items:center;justify-content:center;gap:4px;padding:7px 14px;border-radius:20px;
+  background:var(--card);color:var(--text3);white-space:nowrap;cursor:pointer;transition:all .15s;
+  font-size:13px;font-weight:500;flex-shrink:0;
+}
+.subject-chip.active{background:var(--green);color:#000;font-weight:600}
+.subject-chip .emoji{font-size:14px}
+/* Atmosphere area */
+.atmosphere-wrap{position:relative;height:140px;display:flex;align-items:center;justify-content:center}
+.atm-text{color:var(--text4);font-size:14px;font-weight:500;text-align:center;letter-spacing:.5px}
+/* Record Button - iOS style */
+.record-center{display:flex;justify-content:center;align-items:center;gap:10px;padding:4px 0}
+.record-btn{
+  width:72px;height:72px;border-radius:50%;background:var(--green);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:transform .15s;border:none;color:#000;
+  box-shadow:0 2px 12px rgba(48,209,88,.2);
+}
+.record-btn:active{transform:scale(.92)}
+.record-btn svg{width:30px;height:30px}
+.record-btn.small{width:44px;height:44px;opacity:.5}
+.record-btn.small svg{width:20px;height:20px}
+.record-btn.recording{background:var(--red);box-shadow:0 2px 12px rgba(255,69,58,.2)}
+.record-label{text-align:center;color:var(--text3);font-size:13px;padding:4px 0 8px}
+/* Text Input - iOS style */
+.text-input{
+  width:100%;background:var(--card);border:none;border-radius:var(--radius);
+  padding:12px 14px;color:var(--text);resize:none;font-family:var(--font);font-size:16px;
+  min-height:44px;transition:background .15s;line-height:1.5;
+}
+.text-input:focus{outline:none;background:var(--card2)}
+.text-input::placeholder{color:var(--text4)}
+.input-btns{display:flex;gap:8px;margin-top:8px}
+.btn{
+  border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;
+  transition:opacity .15s;font-family:var(--font);padding:11px 20px;
+}
+.btn-primary{background:var(--green);color:#000;flex:1}
+.btn-primary:active{opacity:.85}
+.btn-ghost{background:transparent;color:var(--text3)}
+/* Parse Preview - iOS card */
+.parse-preview{
+  background:var(--card);border-radius:var(--radius-lg);padding:14px;margin:0 16px 8px;
+  display:none;
+}
+.parse-preview.show{display:block}
+.pp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pp-title{font-size:13px;font-weight:600;color:var(--text3)}
+.pp-edit{color:var(--green);cursor:pointer;font-size:13px;font-weight:600}
+.parse-item{
+  display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);
+  border-radius:var(--radius);margin-bottom:6px;
+}
+.parse-item:last-child{margin-bottom:0}
+.pi-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.pi-body{flex:1;min-width:0}
+.pi-action{font-size:14px;font-weight:600}
+.pi-meta{font-size:11px;color:var(--text4);margin-top:1px}
+.pi-qty{font-size:18px;font-weight:700;color:var(--green)}
+.pi-qty .unit{font-size:12px;color:var(--text3);font-weight:400}
+/* Encourage card - iOS style */
+.encourage{
+  margin:0 16px 8px;padding:12px 14px;border-radius:var(--radius-lg);
+  background:var(--green-bg);display:flex;align-items:center;gap:10px;
+}
+.enc-emoji{font-size:22px}
+.enc-title{font-size:14px;font-weight:600;color:var(--green)}
+.enc-desc{font-size:12px;color:var(--text3);margin-top:1px}
+/* Section Label - iOS style */
+.section-label{font-size:13px;font-weight:600;color:var(--text3);padding:12px 16px 6px;text-transform:uppercase;letter-spacing:.3px}
+/* Diary card - iOS grouped */
+.diary-card{
+  background:var(--card);border-radius:var(--radius-lg);margin:0 16px 8px;padding:12px 14px;
+}
+.diary-card-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.diary-card-emoji{font-size:18px}
+.diary-card-name{font-size:14px;font-weight:600}
+.diary-card-count{font-size:12px;color:var(--text4);margin-left:auto}
+.diary-card-list{display:flex;flex-direction:column;gap:4px}
+.diary-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:var(--sep)}
+.diary-item:first-child{border-top:none}
+.diary-item-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.diary-item-name{flex:1;font-size:13px;color:var(--text2)}
+.diary-item-qty{font-size:14px;font-weight:700;color:var(--green)}
+/* Quick Actions - iOS grid */
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 16px}
+.qa-item{
+  background:var(--card);border-radius:var(--radius);padding:10px 4px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform .15s;
+}
+.qa-item:active{transform:scale(.95)}
+.qa-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.qa-name{font-size:11px;color:var(--text3);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.qa-qty{font-size:11px;font-weight:600;color:var(--green)}
+
+/* ===== Timeline Page ===== */
+.timeline-page{padding-bottom:calc(var(--nav-h) + var(--safe-b) + 20px)}
+/* Search - iOS style */
+.search-bar{padding:4px 16px 8px;position:relative}
+.search-bar input{
+  width:100%;background:var(--card);border:none;border-radius:var(--radius);
+  padding:8px 32px 8px 30px;font-size:14px;color:var(--text);font-family:var(--font);outline:none;
+}
+.search-bar .search-icon{position:absolute;left:24px;top:50%;transform:translateY(-50%);color:var(--text4);font-size:14px;pointer-events:none}
+.search-bar .search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--card3);display:none;align-items:center;justify-content:center;font-size:12px;color:var(--text3);cursor:pointer}
+.search-bar .search-clear.show{display:flex}
+/* Subject filter - iOS pill style */
+.subject-filter{display:flex;gap:5px;padding:4px 16px 8px;overflow-x:auto;scrollbar-width:none}
+.subject-filter::-webkit-scrollbar{display:none}
+.sf-chip{padding:5px 12px;border-radius:20px;background:var(--card);font-size:12px;color:var(--text3);white-space:nowrap;cursor:pointer;flex-shrink:0;display:flex;align-items:center;gap:4px}
+.sf-chip.active{background:var(--green);color:#000;font-weight:600}
+.sf-chip .emoji{font-size:14px}
+/* Timeline records */
+.tl-date-group{padding:0 16px}
+.tl-date{font-size:14px;font-weight:700;padding:12px 0 6px}
+.tl-date .count{font-size:12px;color:var(--text4);font-weight:400;margin-left:6px}
+.record-row{
+  background:var(--card);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s;
+}
+.record-row:active{background:var(--card2)}
+.rr-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.rr-body{flex:1;min-width:0}
+.rr-text{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr-meta{font-size:11px;color:var(--text4);margin-top:2px;display:flex;gap:6px;align-items:center}
+.rr-qty{font-size:16px;font-weight:700;color:var(--green);white-space:nowrap}
+.rr-qty .u{font-size:11px;color:var(--text3);font-weight:400}
+/* FAB */
+.fab-add{
+  position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 12px);right:16px;
+  width:48px;height:48px;border-radius:50%;background:var(--green);color:#000;
+  font-size:28px;font-weight:300;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;box-shadow:0 2px 12px rgba(48,209,88,.3);z-index:50;transition:transform .15s;
+}
+.fab-add:active{transform:scale(.92)}
+
+/* ===== Stats Page ===== */
+.stats-page{padding-bottom:calc(var(--nav-h) + var(--safe-b) + 20px)}
+/* Hero card - iOS gradient */
+.stats-hero{
+  margin:12px 16px;padding:20px;border-radius:var(--radius-xl);
+  background:linear-gradient(135deg,var(--green-dark),var(--green));text-align:center;
+}
+.sh-num{font-size:40px;font-weight:800;color:#fff;letter-spacing:-1px}
+.sh-label{font-size:13px;color:#FFFFFFAA;margin-top:2px}
+.sh-row{display:flex;justify-content:center;gap:28px;margin-top:14px}
+.sh-item{text-align:center}
+.sh-item .v{font-size:18px;font-weight:700;color:#fff}
+.sh-item .l{font-size:10px;color:#FFFFFF88}
+/* Segmented control - iOS style */
+.stat-seg{display:flex;margin:0 16px 8px;background:var(--card2);border-radius:9px;padding:2px}
+.stat-seg-item{flex:1;padding:6px 0;text-align:center;color:var(--text3);font-size:13px;font-weight:500;border-radius:7px;cursor:pointer;transition:all .15s}
+.stat-seg-item.active{background:var(--card3);color:var(--text);font-weight:600}
+/* Stat card - iOS grouped */
+.stat-card{background:var(--card);border-radius:var(--radius-lg);margin:0 16px 8px;padding:14px;overflow:hidden}
+.sc-title{font-size:14px;font-weight:700;margin-bottom:10px}
+.sc-sub{font-size:11px;color:var(--text4);font-weight:400;margin-left:6px}
+/* Cumulative list */
+.cum-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:var(--sep)}
+.cum-row:first-child{border-top:none}
+.cr-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.cr-name{flex:1;font-size:13px;font-weight:500}
+.cr-bar{flex:2;height:5px;background:var(--card3);border-radius:3px;overflow:hidden;max-width:90px}
+.cr-bar-fill{height:100%;border-radius:3px}
+.cr-qty{font-size:15px;font-weight:700;color:var(--green);min-width:56px;text-align:right}
+.cr-qty .u{font-size:10px;color:var(--text3);font-weight:400}
+/* Daily breakdown */
+.daily-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:var(--sep)}
+.daily-row:first-child{border-top:none}
+.dr-time{font-size:12px;color:var(--text4);width:40px;flex-shrink:0}
+.dr-icon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.dr-name{flex:1;font-size:13px;font-weight:500}
+.dr-qty{font-size:14px;font-weight:700;color:var(--green)}
+.dr-qty .u{font-size:10px;color:var(--text3);font-weight:400}
+
+/* ===== Calendar Page ===== */
+.calendar-page{padding-bottom:calc(var(--nav-h) + var(--safe-b) + 20px)}
+.cal-tabs{display:flex;margin:0 16px 8px;background:var(--card2);border-radius:9px;padding:2px}
+.cal-tab{flex:1;padding:6px 0;text-align:center;color:var(--text3);font-size:13px;font-weight:500;border-radius:7px;cursor:pointer;transition:all .15s}
+.cal-tab.active{background:var(--card3);color:var(--text);font-weight:600}
+.cal-month-nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px}
+.cal-nav-btn{width:30px;height:30px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text3);cursor:pointer}
+.cal-nav-btn:active{background:var(--card2)}
+.cal-month-label{font-size:15px;font-weight:700}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:0 16px 4px}
+.cal-weekdays div{font-size:11px;color:var(--text4);font-weight:600;padding:4px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 16px}
+.cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:14px;border-radius:50%;color:var(--text2);position:relative;cursor:pointer}
+.cal-cell.other-month{color:var(--text5)}
+.cal-cell.today{font-weight:700;color:var(--green)}
+.cal-cell.has-record::after{content:'';position:absolute;bottom:2px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+.cal-cell.selected{background:var(--green);color:#000;font-weight:700}
+.cal-cell.selected.has-record::after{background:#000}
+/* Achievement grid - iOS style */
+.ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px}
+.ach-card{background:var(--card);border-radius:var(--radius-lg);padding:14px 6px 10px;text-align:center;position:relative}
+.ach-card.locked{opacity:.3}
+.ac-icon{font-size:28px;margin-bottom:4px}
+.ac-name{font-size:11px;font-weight:600;color:var(--text2)}
+.ac-desc{font-size:9px;color:var(--text4);margin-top:2px;line-height:1.3}
+.ac-check{position:absolute;top:5px;right:5px;width:14px;height:14px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;color:#000;font-size:9px;font-weight:700}
+
+/* ===== Settings Page - iOS grouped list ===== */
+.settings-page{padding-bottom:calc(var(--nav-h) + var(--safe-b) + 20px)}
+.settings-group{background:var(--card);border-radius:var(--radius-lg);margin:0 16px 8px;overflow:hidden}
+.settings-group-title{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;padding:16px 16px 6px}
+.settings-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-top:var(--sep);transition:background .15s}
+.settings-item:first-child{border-top:none}
+.settings-item:active{background:var(--card2)}
+.settings-item-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.settings-item-body{flex:1;min-width:0}
+.settings-item-name{font-size:15px;font-weight:500}
+.settings-item-desc{font-size:12px;color:var(--text4);margin-top:1px}
+.settings-item-arrow{color:var(--text4);font-size:14px;flex-shrink:0}
+
+/* ===== Modal - iOS sheet ===== */
+.modal-overlay{position:fixed;inset:0;background:var(--modal-overlay);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-sheet{
+  width:100%;max-width:480px;background:var(--bg2);border-radius:var(--radius-xxl) var(--radius-xxl) 0 0;
+  padding:16px 16px calc(16px + var(--safe-b));
+}
+.ms-handle{width:36px;height:5px;border-radius:3px;background:var(--text5);margin:0 auto 14px}
+.ms-title{font-size:17px;font-weight:700;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.ms-close{width:28px;height:28px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text3);cursor:pointer}
+.ms-label{font-size:13px;font-weight:600;color:var(--text3);margin-bottom:5px}
+.modal-sheet input,.modal-sheet select,.modal-sheet textarea{
+  width:100%;background:var(--card);border:none;border-radius:var(--radius);
+  padding:11px 14px;font-size:16px;color:var(--text);font-family:var(--font);margin-bottom:10px;
+}
+.modal-sheet input:focus{outline:none;background:var(--card2)}
+.ms-actions{display:flex;gap:8px;margin-top:4px}
+.ms-actions .btn{flex:1}
+
+/* Color category dots */
+.cat-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+</style>
+</head>
+<body data-theme="dark">
+<div id="app">
+
+  <!-- ===== Page Switcher (demo only) ===== -->
+  <div style="position:fixed;top:0;left:0;right:0;z-index:300;display:flex;background:var(--nav-bg);backdrop-filter:blur(20px);padding:4px 12px;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:var(--sep)">
+    <div onclick="switchPage('record')" style="font-size:12px;font-weight:600;color:var(--green);white-space:nowrap;cursor:pointer">📝 记录</div>
+    <div onclick="switchPage('timeline')" style="font-size:12px;color:var(--text3);white-space:nowrap;cursor:pointer">🕐 时间线</div>
+    <div onclick="switchPage('stats')" style="font-size:12px;color:var(--text3);white-space:nowrap;cursor:pointer">📊 统计</div>
+    <div onclick="switchPage('calendar')" style="font-size:12px;color:var(--text3);white-space:nowrap;cursor:pointer">📅 打卡</div>
+    <div onclick="switchPage('settings')" style="font-size:12px;color:var(--text3);white-space:nowrap;cursor:pointer">⚙️ 设置</div>
+    <div onclick="toggleTheme()" style="font-size:12px;color:var(--blue);white-space:nowrap;cursor:pointer;margin-left:auto">🌓</div>
+  </div>
+  <div style="height:28px"></div>
+
+  <!-- ===== Record Page ===== -->
+  <div class="page active record-page" id="page-record">
+    <div class="nav-header">
+      <div class="nav-header-row">
+        <div class="nav-header-left">
+          <h1><span style="color:var(--green)">x</span>365</h1>
+          <div class="sub">再小的坚持也有力量</div>
+        </div>
+        <div class="header-actions">
+          <div class="header-btn" style="font-size:18px">⋯</div>
+          <div class="header-btn avatar" onclick="switchPage('settings')">B</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subject-bar">
+      <div class="subject-chip active"><span class="emoji">🙋</span>Bonnie</div>
+      <div class="subject-chip"><span class="emoji">🐕</span>狗狗</div>
+      <div class="subject-chip"><span class="emoji">🌱</span>植物</div>
+    </div>
+
+    <div class="input-section">
+      <!-- Atmosphere -->
+      <div class="atmosphere-wrap">
+        <div class="atm-text">坚持第 <span style="color:var(--green);font-weight:700;font-size:18px">37</span> 天 · 今日已记录 <span style="color:var(--blue);font-weight:700">5</span> 项</div>
+      </div>
+
+      <!-- Record buttons -->
+      <div class="record-center">
+        <div class="record-btn small">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        </div>
+        <div class="record-btn" onclick="showToast('录音中...')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+        </div>
+      </div>
+      <div class="record-label">长按语音 · 点击输入</div>
+
+      <!-- Text input -->
+      <input class="text-input" placeholder="输入要记录的行为..." style="margin-top:4px">
+
+      <div class="input-btns">
+        <button class="btn btn-primary">识别</button>
+        <button class="btn btn-ghost">清除</button>
+      </div>
+    </div>
+
+    <!-- Parse preview (shown state) -->
+    <div class="parse-preview show">
+      <div class="pp-header">
+        <div class="pp-title">识别结果</div>
+        <div class="pp-edit" onclick="showToast('编辑模式')">修改</div>
+      </div>
+      <div class="parse-item">
+        <div class="pi-icon" style="background:var(--green-bg)">🦵</div>
+        <div class="pi-body"><div class="pi-action">负重侧抬腿</div><div class="pi-meta">运动 · 左腿</div></div>
+        <div class="pi-qty">20<span class="unit">个</span></div>
+      </div>
+      <div class="parse-item">
+        <div class="pi-icon" style="background:var(--blue-bg)">📖</div>
+        <div class="pi-body"><div class="pi-action">读书</div><div class="pi-meta">学习 · 30分钟</div></div>
+        <div class="pi-qty">30<span class="unit">分钟</span></div>
+      </div>
+      <div class="input-btns" style="margin-top:10px">
+        <button class="btn btn-primary">确认保存</button>
+      </div>
+    </div>
+
+    <!-- Encourage -->
+    <div class="encourage">
+      <div class="enc-emoji">🎉</div>
+      <div style="flex:1">
+        <div class="enc-title">太棒了！已连续37天</div>
+        <div class="enc-desc">每一个小行为都值得被记住</div>
+      </div>
+    </div>
+
+    <!-- Subject Diary -->
+    <div class="section-label">主体日记</div>
+    <div class="diary-card">
+      <div class="diary-card-header">
+        <span class="diary-card-emoji">🙋</span>
+        <span class="diary-card-name">Bonnie</span>
+        <span class="diary-card-count">5项</span>
+      </div>
+      <div class="diary-card-list">
+        <div class="diary-item">
+          <div class="diary-item-icon" style="background:var(--green-bg)">🦵</div>
+          <div class="diary-item-name">负重侧抬腿</div>
+          <div class="diary-item-qty">20个</div>
+        </div>
+        <div class="diary-item">
+          <div class="diary-item-icon" style="background:var(--blue-bg)">📖</div>
+          <div class="diary-item-name">读书</div>
+          <div class="diary-item-qty">30分钟</div>
+        </div>
+        <div class="diary-item">
+          <div class="diary-item-icon" style="background:var(--yellow-bg)">🧘</div>
+          <div class="diary-item-name">冥想</div>
+          <div class="diary-item-qty">15分钟</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section-label">常用动作</div>
+    <div class="quick-actions">
+      <div class="qa-item" onclick="showModal()">
+        <div class="qa-icon" style="background:var(--green-bg)">🦵</div>
+        <div class="qa-name">侧抬腿</div>
+        <div class="qa-qty">20个</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-icon" style="background:var(--blue-bg)">📖</div>
+        <div class="qa-name">读书</div>
+        <div class="qa-qty">30分</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-icon" style="background:var(--yellow-bg)">🧘</div>
+        <div class="qa-name">冥想</div>
+        <div class="qa-qty">15分</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-icon" style="background:rgba(191,90,242,.15)">💪</div>
+        <div class="qa-name">俯卧撑</div>
+        <div class="qa-qty">15个</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-icon" style="background:rgba(255,159,10,.15)">🏃</div>
+        <div class="qa-name">跑步</div>
+        <div class="qa-qty">5公里</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-icon" style="background:rgba(64,200,224,.15)">💧</div>
+        <div class="qa-name">喝水</div>
+        <div class="qa-qty">8杯</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-icon" style="background:var(--green-bg)">🥗</div>
+        <div class="qa-name">健康餐</div>
+        <div class="qa-qty">1顿</div>
+      </div>
+      <div class="qa-item">
+        <div class="qa-icon" style="background:var(--card2);color:var(--text4)">+</div>
+        <div class="qa-name" style="color:var(--text4)">添加</div>
+        <div class="qa-qty" style="visibility:hidden">.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Timeline Page ===== -->
+  <div class="page timeline-page" id="page-timeline">
+    <div class="nav-header">
+      <div class="nav-header-row">
+        <div class="nav-header-left">
+          <h1>时间线</h1>
+          <div class="sub">你的每一步，都有迹可循</div>
+        </div>
+        <div class="header-actions">
+          <div class="header-btn" style="font-size:18px">⋯</div>
+          <div class="header-btn avatar">B</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="搜索记录..." value="" oninput="onSearch(this.value)">
+      <div class="search-clear" id="searchClear" onclick="clearSearch()">✕</div>
+    </div>
+
+    <div class="subject-filter">
+      <div class="sf-chip active">全部</div>
+      <div class="sf-chip"><span class="emoji">🙋</span>Bonnie</div>
+      <div class="sf-chip"><span class="emoji">🐕</span>狗狗</div>
+      <div class="sf-chip"><span class="emoji">🌱</span>植物</div>
+    </div>
+
+    <div class="tl-date-group">
+      <div class="tl-date">今天 <span class="count">5条</span></div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:var(--green-bg)">🦵</div>
+        <div class="rr-body">
+          <div class="rr-text">负重侧抬腿</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--green)"></span>运动 · 14:30</div>
+        </div>
+        <div class="rr-qty">20<span class="u">个</span></div>
+      </div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:var(--blue-bg)">📖</div>
+        <div class="rr-body">
+          <div class="rr-text">读书《认知觉醒》</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--blue)"></span>学习 · 13:00</div>
+        </div>
+        <div class="rr-qty">30<span class="u">分钟</span></div>
+      </div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:var(--yellow-bg)">🧘</div>
+        <div class="rr-body">
+          <div class="rr-text">冥想</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--yellow)"></span>休息 · 12:00</div>
+        </div>
+        <div class="rr-qty">15<span class="u">分钟</span></div>
+      </div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:rgba(64,200,224,.15)">💧</div>
+        <div class="rr-body">
+          <div class="rr-text">喝水</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--teal)"></span>健康 · 10:00</div>
+        </div>
+        <div class="rr-qty">2<span class="u">杯</span></div>
+      </div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:var(--green-bg)">🥗</div>
+        <div class="rr-body">
+          <div class="rr-text">健康早餐</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--green)"></span>饮食 · 08:00</div>
+        </div>
+        <div class="rr-qty">1<span class="u">顿</span></div>
+      </div>
+    </div>
+
+    <div class="tl-date-group">
+      <div class="tl-date">昨天 <span class="count">4条</span></div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:rgba(191,90,242,.15)">💪</div>
+        <div class="rr-body">
+          <div class="rr-text">俯卧撑</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--purple)"></span>运动 · 21:00</div>
+        </div>
+        <div class="rr-qty">15<span class="u">个</span></div>
+      </div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:rgba(255,159,10,.15)">🏃</div>
+        <div class="rr-body">
+          <div class="rr-text">跑步</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--orange)"></span>运动 · 18:30</div>
+        </div>
+        <div class="rr-qty">5<span class="u">公里</span></div>
+      </div>
+      <div class="record-row">
+        <div class="rr-icon" style="background:var(--blue-bg)">📖</div>
+        <div class="rr-body">
+          <div class="rr-text">读书</div>
+          <div class="rr-meta"><span class="cat-dot" style="background:var(--blue)"></span>学习 · 20:00</div>
+        </div>
+        <div class="rr-qty">45<span class="u">分钟</span></div>
+      </div>
+    </div>
+
+    <div class="fab-add" onclick="showModal()">+</div>
+  </div>
+
+  <!-- ===== Stats Page ===== -->
+  <div class="page stats-page" id="page-stats">
+    <div class="nav-header">
+      <div class="nav-header-row">
+        <div class="nav-header-left">
+          <h1>统计</h1>
+          <div class="sub">看见微小行为的巨大力量</div>
+        </div>
+        <div class="header-actions">
+          <div class="header-btn avatar">B</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subject-filter">
+      <div class="sf-chip active">全部</div>
+      <div class="sf-chip"><span class="emoji">🙋</span>Bonnie</div>
+      <div class="sf-chip"><span class="emoji">🐕</span>狗狗</div>
+    </div>
+
+    <div class="stats-hero">
+      <div class="sh-num">128</div>
+      <div class="sh-label">累计记录</div>
+      <div class="sh-row">
+        <div class="sh-item"><div class="v">37</div><div class="l">活跃天</div></div>
+        <div class="sh-item"><div class="v">12</div><div class="l">连续天</div></div>
+        <div class="sh-item"><div class="v">3</div><div class="l">主体数</div></div>
+      </div>
+    </div>
+
+    <div class="stat-seg">
+      <div class="stat-seg-item active">每日</div>
+      <div class="stat-seg-item">每周</div>
+      <div class="stat-seg-item">每月</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="sc-title">累计统计<span class="sc-sub">本周</span></div>
+      <div class="cum-row">
+        <div class="cr-icon" style="background:var(--green-bg)">🦵</div>
+        <div class="cr-name">侧抬腿</div>
+        <div class="cr-bar"><div class="cr-bar-fill" style="width:90%;background:var(--green)"></div></div>
+        <div class="cr-qty">140<span class="u">个</span></div>
+      </div>
+      <div class="cum-row">
+        <div class="cr-icon" style="background:var(--blue-bg)">📖</div>
+        <div class="cr-name">读书</div>
+        <div class="cr-bar"><div class="cr-bar-fill" style="width:70%;background:var(--blue)"></div></div>
+        <div class="cr-qty">210<span class="u">分</span></div>
+      </div>
+      <div class="cum-row">
+        <div class="cr-icon" style="background:var(--yellow-bg)">🧘</div>
+        <div class="cr-name">冥想</div>
+        <div class="cr-bar"><div class="cr-bar-fill" style="width:50%;background:var(--yellow)"></div></div>
+        <div class="cr-qty">105<span class="u">分</span></div>
+      </div>
+      <div class="cum-row">
+        <div class="cr-icon" style="background:rgba(191,90,242,.15)">💪</div>
+        <div class="cr-name">俯卧撑</div>
+        <div class="cr-bar"><div class="cr-bar-fill" style="width:40%;background:var(--purple)"></div></div>
+        <div class="cr-qty">90<span class="u">个</span></div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="sc-title">今日明细</div>
+      <div class="daily-row">
+        <div class="dr-time">14:30</div>
+        <div class="dr-icon" style="background:var(--green-bg)">🦵</div>
+        <div class="dr-name">负重侧抬腿</div>
+        <div class="dr-qty">20<span class="u">个</span></div>
+      </div>
+      <div class="daily-row">
+        <div class="dr-time">13:00</div>
+        <div class="dr-icon" style="background:var(--blue-bg)">📖</div>
+        <div class="dr-name">读书</div>
+        <div class="dr-qty">30<span class="u">分</span></div>
+      </div>
+      <div class="daily-row">
+        <div class="dr-time">12:00</div>
+        <div class="dr-icon" style="background:var(--yellow-bg)">🧘</div>
+        <div class="dr-name">冥想</div>
+        <div class="dr-qty">15<span class="u">分</span></div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="sc-title">7日趋势</div>
+      <svg viewBox="0 0 280 80" style="width:100%;height:80px;display:block">
+        <rect x="10" y="40" width="28" height="30" rx="4" fill="var(--green)" opacity=".5"/>
+        <rect x="48" y="25" width="28" height="45" rx="4" fill="var(--green)" opacity=".6"/>
+        <rect x="86" y="15" width="28" height="55" rx="4" fill="var(--green)" opacity=".7"/>
+        <rect x="124" y="35" width="28" height="35" rx="4" fill="var(--green)" opacity=".5"/>
+        <rect x="162" y="20" width="28" height="50" rx="4" fill="var(--green)" opacity=".7"/>
+        <rect x="200" y="10" width="28" height="60" rx="4" fill="var(--green)" opacity=".8"/>
+        <rect x="238" y="5" width="28" height="65" rx="4" fill="var(--green)"/>
+        <text x="24" y="78" font-size="8" fill="var(--text4)" text-anchor="middle">一</text>
+        <text x="62" y="78" font-size="8" fill="var(--text4)" text-anchor="middle">二</text>
+        <text x="100" y="78" font-size="8" fill="var(--text4)" text-anchor="middle">三</text>
+        <text x="138" y="78" font-size="8" fill="var(--text4)" text-anchor="middle">四</text>
+        <text x="176" y="78" font-size="8" fill="var(--text4)" text-anchor="middle">五</text>
+        <text x="214" y="78" font-size="8" fill="var(--text4)" text-anchor="middle">六</text>
+        <text x="252" y="78" font-size="8" fill="var(--green)" text-anchor="middle">今</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ===== Calendar Page ===== -->
+  <div class="page calendar-page" id="page-calendar">
+    <div class="nav-header">
+      <div class="nav-header-row">
+        <div class="nav-header-left">
+          <h1>打卡</h1>
+          <div class="sub">日复一日，见证坚持</div>
+        </div>
+        <div class="header-actions">
+          <div class="header-btn avatar">B</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cal-tabs">
+      <div class="cal-tab active">打卡</div>
+      <div class="cal-tab">成就</div>
+    </div>
+
+    <div class="subject-filter">
+      <div class="sf-chip active">全部</div>
+      <div class="sf-chip"><span class="emoji">🙋</span>Bonnie</div>
+    </div>
+
+    <div class="cal-month-nav">
+      <div class="cal-nav-btn">‹</div>
+      <div class="cal-month-label">2026年8月</div>
+      <div class="cal-nav-btn">›</div>
+    </div>
+
+    <div class="cal-weekdays">
+      <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <!-- ===== Settings Page ===== -->
+  <div class="page settings-page" id="page-settings">
+    <div class="nav-header">
+      <div class="nav-header-row">
+        <div class="nav-header-left">
+          <h1>设置</h1>
+          <div class="sub">管理你的偏好与数据</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group-title">个人</div>
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:var(--green-bg)">🙋</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">个人信息</div>
+          <div class="settings-item-desc">Bonnie</div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group-title">外观</div>
+    <div class="settings-group">
+      <div class="settings-item" onclick="toggleTheme()">
+        <div class="settings-item-icon" style="background:var(--card2)">🌙</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">主题模式</div>
+          <div class="settings-item-desc" id="themeDesc">点击切换深色/浅色</div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group-title">记忆库</div>
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:var(--blue-bg)">⚙️</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">自定义记忆库</div>
+          <div class="settings-item-desc">管理主体与动作</div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:var(--yellow-bg)">⏰</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">提醒管理</div>
+          <div class="settings-item-desc">查看和管理定时提醒</div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group-title">数据</div>
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:var(--card2)">📤</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">导出数据</div>
+          <div class="settings-item-desc">备份为JSON文件</div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:var(--card2)">📥</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">导入数据</div>
+          <div class="settings-item-desc">从JSON恢复记录</div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:rgba(255,69,58,.15)">🗑️</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name" style="color:var(--red)">清空所有数据</div>
+          <div class="settings-item-desc">不可恢复，请谨慎操作</div>
+        </div>
+        <div class="settings-item-arrow" style="color:var(--red)">›</div>
+      </div>
+    </div>
+
+    <div class="settings-group-title">关于</div>
+    <div class="settings-group">
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:var(--card2)">ℹ️</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">版本</div>
+          <div class="settings-item-desc">V19.56 iOS Design</div>
+        </div>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-icon" style="background:var(--green-bg)">💡</div>
+        <div class="settings-item-body">
+          <div class="settings-item-name">关于x365</div>
+          <div class="settings-item-desc">记录日常琐碎，累积人生改变</div>
+        </div>
+        <div class="settings-item-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Bottom Nav ===== -->
+  <div class="bottom-nav">
+    <div class="nav-item active" data-page="record" onclick="switchPage('record')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+      <span>记录</span>
+    </div>
+    <div class="nav-item" data-page="timeline" onclick="switchPage('timeline')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>时间线</span>
+    </div>
+    <div class="nav-item" data-page="stats" onclick="switchPage('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1" fill="currentColor" stroke="none"/><rect x="12" y="8" width="3" height="10" rx="1" fill="currentColor" stroke="none"/><rect x="17" y="5" width="3" height="13" rx="1" fill="currentColor" stroke="none"/></svg>
+      <span>统计</span>
+    </div>
+    <div class="nav-item" data-page="calendar" onclick="switchPage('calendar')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 2v3"/><path d="M16 2v3"/><polyline points="9 13 11.5 16 15.5 11"/></svg>
+      <span>打卡</span>
+    </div>
+    <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>设置</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== Modal ===== -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet">
+    <div class="ms-handle"></div>
+    <div class="ms-title">快速记录<div class="ms-close" onclick="closeModal()">✕</div></div>
+    <div class="ms-label">动作</div>
+    <input type="text" value="侧抬腿" readonly style="background:var(--card2)">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="flex:1">
+        <div class="ms-label" style="margin-bottom:4px">数量</div>
+        <input type="number" value="20" style="text-align:center;font-weight:600">
+      </div>
+      <div style="flex:1">
+        <div class="ms-label" style="margin-bottom:4px">单位</div>
+        <input type="text" value="个" style="text-align:center">
+      </div>
+    </div>
+    <div class="ms-label">备注</div>
+    <textarea placeholder="添加备注..." style="min-height:50px;resize:vertical"></textarea>
+    <div class="ms-actions">
+      <button class="btn btn-primary" onclick="closeModal();showToast('已记录 ✓')">确认记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast ===== -->
+<div id="toast" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--card3);color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap"></div>
+
+<script>
+function switchPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-page="'+name+'"]').forEach(n=>n.classList.add('active'));
+  // Update top switcher
+  var switcher = document.querySelectorAll('[onclick^="switchPage"]');
+  switcher.forEach(function(s){
+    if(s.tagName === 'DIV' && s.parentElement.style.position === 'fixed') return;
+  });
+}
+function toggleTheme(){
+  var body = document.body;
+  var current = body.getAttribute('data-theme');
+  body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+  var desc = document.getElementById('themeDesc');
+  if(desc) desc.textContent = body.getAttribute('data-theme') === 'dark' ? '深色模式' : '浅色模式';
+}
+function onSearch(val){
+  var clear = document.getElementById('searchClear');
+  if(val) clear.classList.add('show'); else clear.classList.remove('show');
+}
+function clearSearch(){
+  var input = document.querySelector('.search-bar input');
+  if(input){ input.value=''; onSearch(''); }
+}
+function showModal(){ document.getElementById('modalOverlay').classList.add('show'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.opacity = '1';
+  setTimeout(function(){ t.style.opacity = '0'; }, 2000);
+}
+// Generate calendar
+(function(){
+  var grid = document.getElementById('calGrid');
+  if(!grid) return;
+  var html = '';
+  var daysInMonth = 31;
+  var firstDay = 5; // Aug 2026 starts on Saturday (0=Sun)
+  for(var i=0;i<firstDay;i++) html += '<div class="cal-cell other-month"></div>';
+  for(var d=1;d<=daysInMonth;d++){
+    var cls = 'cal-cell';
+    if(d===24) cls += ' today';
+    if([1,2,3,5,6,7,8,10,12,14,15,17,19,20,21,22,23,24].includes(d)) cls += ' has-record';
+    if(d===24) cls += ' selected';
+    html += '<div class="'+cls+'">'+d+'</div>';
+  }
+  grid.innerHTML = html;
+})();
+</script>
+</body>
+</html>
