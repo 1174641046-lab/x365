@@ -8252,11 +8252,9 @@ function renderCalendar(){
       return '<span class="cal-day-dot" title="'+item.category+'">'+item.icon+'</span>';
     }).join('');
     
-    var countHtml = dayRecords.length > 0 ? '<div class="cal-day-count">'+dayRecords.length+'条</div>' : '';
     html += '<div class="cal-day'+(isToday?' today':'')+(isSelected?' selected':'')+'" onclick="selectCalDay(\''+dateStr+'\')">' +
       '<div class="cal-day-num">'+d+'</div>' +
       '<div class="cal-day-dots">'+dotsHtml+'</div>' +
-      countHtml +
     '</div>';
   }
   grid.innerHTML = html;
