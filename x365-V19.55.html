@@ -4630,6 +4630,7 @@ function showMemoryTab(el){
         html += '</div>';
         html += '<div class="cm-item-actions">';
         html += '<div class="cm-item-btn edit" data-action-name="'+name+'" onclick="showEditActionForm(this.dataset.actionName)">编辑</div>';
+        html += '<div class="cm-item-btn delete" data-action-name="'+name+'" onclick="deleteBuiltinActionBtn(this)">删除</div>';
         html += '</div></div>';
       });
     }
@@ -4653,8 +4654,16 @@ function showMemoryTab(el){
       }
     });
 
-    // Get all subjects for filter bar (exclude 'user')
-    var allSubjects = STATE.subjects.filter(function(s){return s.id !== 'user'}).concat(STATE.customSubjects);
+    // Get all subjects for filter bar (built-in from SUBJECT_KEYWORDS excluding '我', plus STATE.subjects excluding user, plus custom)
+    var builtinSubjects = [];
+    var subjIdMap = { '我':'user','狗狗':'dog','猫咪':'cat','宝宝':'baby','家人':'family','植物':'plant' };
+    Object.keys(SUBJECT_KEYWORDS).forEach(function(key){
+      if(key === '我') return;
+      var sid = subjIdMap[key] || key;
+      builtinSubjects.push({id:sid, name:key, emoji:SUBJECT_KEYWORDS[key].emoji || '⭐'});
+    });
+    var stateSubjectsFiltered = STATE.subjects.filter(function(s){return s.id !== 'user'});
+    var allSubjects = builtinSubjects.concat(stateSubjectsFiltered, STATE.customSubjects);
 
     // Subject filter bar (on top)
     var filterHtml = '<div class="memory-filter-bar">';
@@ -4910,11 +4919,46 @@ function updateEditActionColorPreview(){
 }
 
 function deleteCustomSubjectBtn(el){
-  deleteCustomSubject(el.dataset.subId);
+  var id = el.dataset.subId;
+  var sub = STATE.customSubjects.find(function(x){return x.id === id}) || STATE.subjects.find(function(x){return x.id === id});
+  var name = sub ? sub.name : '该主体';
+  var count = STATE.records.filter(function(r){return r.subject === id}).length;
+  var msg = '确定要删除「'+name+'」吗？';
+  if(count > 0) msg += '\n\n关联的 '+count+' 条记录将同步删除，此操作不可恢复。';
+  if(!confirm(msg)) return;
+  deleteCustomSubject(id);
 }
 
 function deleteCustomActionBtn(el){
-  deleteCustomAction(el.dataset.actionName);
+  var name = el.dataset.actionName;
+  var count = 0;
+  STATE.records.forEach(function(r){
+    if(r.actions){
+      r.actions.forEach(function(a){
+        if(a.standardName === name || a.action === name) count++;
+      });
+    }
+  });
+  var msg = '确定要删除「'+name+'」吗？';
+  if(count > 0) msg += '\n\n关联的 '+count+' 条记录将同步删除，此操作不可恢复。';
+  if(!confirm(msg)) return;
+  deleteCustomAction(name);
+}
+
+function deleteBuiltinActionBtn(el){
+  var name = el.dataset.actionName;
+  var count = 0;
+  STATE.records.forEach(function(r){
+    if(r.actions){
+      r.actions.forEach(function(a){
+        if(a.standardName === name || a.action === name) count++;
+      });
+    }
+  });
+  var msg = '确定要删除系统动作「'+name+'」吗？';
+  if(count > 0) msg += '\n\n关联的 '+count+' 条记录将同步删除，此操作不可恢复。';
+  if(!confirm(msg)) return;
+  deleteCustomAction(name);
 }
 
 function showAddSubjectForm(){
@@ -4966,9 +5010,14 @@ function saveNewSubject(){
 
 function deleteCustomSubject(id){
   STATE.customSubjects = STATE.customSubjects.filter(function(s){return s.id !== id});
+  STATE.subjects = STATE.subjects.filter(function(s){return s.id !== id});
+  // Remove associated records
+  STATE.records = STATE.records.filter(function(r){return r.subject !== id});
   saveState();
   showMemoryTab(document.querySelector('.cm-tab[data-tab="subjects"]'));
   renderSubjectBar();
+  renderQuickActions();
+  renderTimeline();
   showToast('已删除主体');
 }
 
@@ -5033,10 +5082,23 @@ function saveNewAction(){
 }
 
 function deleteCustomAction(name){
+  // Remove from custom actions
   delete STATE.customActions[name];
+  // Also remove from built-in ACTION_DICT if it exists there
+  if(ACTION_DICT[name]){
+    delete ACTION_DICT[name];
+  }
+  // Remove associated records
+  STATE.records = STATE.records.filter(function(r){
+    if(!r.actions) return true;
+    return !r.actions.some(function(a){return a.standardName === name || a.action === name});
+  });
   rebuildAliasMap();
   saveState();
-  showMemoryTab(document.querySelector('.cm-tab[data-tab="actions"]'));
+  // Refresh whichever tab is active
+  var activeTab = document.querySelector('.cm-tab.active');
+  if(activeTab) showMemoryTab(activeTab);
+  renderQuickActions();
   showToast('已删除动作：'+name);
 }
 
@@ -5171,13 +5233,17 @@ function openQuickAddModal(name){
   html += '<input type="hidden" id="quickSubject" value="'+defaultSubject+'">';
   html += '</div></div>';
   
-  html += '<div style="margin-bottom:12px">';
-  html += '<div style="font-size:12px;color:var(--text4);margin-bottom:4px">数量</div>';
-  html += '<input type="number" id="quickQty" value="'+defaultQty+'" min="0.1" step="0.1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:16px;outline:none;text-align:center;font-weight:600">';
+  // Quantity + Unit in one row
+  html += '<div style="display:flex;gap:8px;margin-bottom:12px">';
+  html += '<div style="flex:1"><div style="font-size:12px;color:var(--text4);margin-bottom:4px">数量</div>';
+  html += '<input type="number" id="quickQty" value="'+defaultQty+'" min="0.1" step="0.1" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:16px;outline:none;text-align:center;font-weight:600"></div>';
+  html += '<div style="flex:1"><div style="font-size:12px;color:var(--text4);margin-bottom:4px">单位</div>';
+  html += '<input type="text" id="quickUnit" value="'+defaultUnit+'" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;text-align:center"></div>';
   html += '</div>';
+  // Notes
   html += '<div style="margin-bottom:16px">';
-  html += '<div style="font-size:12px;color:var(--text4);margin-bottom:4px">单位</div>';
-  html += '<input type="text" id="quickUnit" value="'+defaultUnit+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;text-align:center">';
+  html += '<div style="font-size:12px;color:var(--text4);margin-bottom:4px">备注</div>';
+  html += '<textarea id="quickNotes" placeholder="添加备注..." style="width:100%;min-height:50px;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)"></textarea>';
   html += '</div>';
   html += '<button class="btn btn-primary" onclick="quickAddConfirm(\''+name+'\')" style="width:100%">确认记录</button>';
   
@@ -5209,9 +5275,11 @@ function quickAddConfirm(name){
   var qtyInput = document.getElementById('quickQty');
   var unitInput = document.getElementById('quickUnit');
   var subInput = document.getElementById('quickSubject');
+  var notesInput = document.getElementById('quickNotes');
   var qty = parseFloat(qtyInput ? qtyInput.value : 1) || 1;
   var unit = unitInput ? (unitInput.value.trim() || '次') : '次';
   var subject = subInput ? subInput.value : 'user';
+  var notes = notesInput ? notesInput.value.trim() : '';
   
   closeModal();
   
@@ -5250,6 +5318,7 @@ function quickAddConfirm(name){
       subject: subject
     }],
     subject: subject,
+    notes: notes,
     timestamp: now.getTime(),
     date: formatDate(now),
     time: formatTime(now),
@@ -5582,10 +5651,18 @@ function openCopyModal(orig){
   html += '</div>';
   html += '<input type="hidden" id="editCategory" value="'+a.category+'">';
 
-  // Date (default to today)
+  // Date + Time (two columns, default to today and current time)
   var today = formatDate(new Date());
-  html += '<div class="ms-label">日期</div>';
-  html += '<input type="date" id="newRecordDate" value="'+today+'" style="width:100%;max-width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box;margin-bottom:10px">';
+  var nowTime = new Date();
+  var hh = String(nowTime.getHours()).padStart(2,'0');
+  var mm = String(nowTime.getMinutes()).padStart(2,'0');
+  var currentTime = hh+':'+mm;
+  html += '<div style="display:flex;gap:8px;margin-bottom:10px">';
+  html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
+  html += '<input type="date" id="newRecordDate" value="'+today+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box"></div>';
+  html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
+  html += '<input type="time" id="newRecordTime" value="'+currentTime+'" style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--sep2);background:var(--bg2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box"></div>';
+  html += '</div>';
 
   // Notes (empty by default for new copy)
   html += '<div class="ms-label">备注</div>';
@@ -5604,6 +5681,7 @@ function saveRecordCopy(origId){
   var orig = STATE.records.find(function(r){return r.id === origId});
   if(!orig) return;
   var newDate = document.getElementById('newRecordDate').value;
+  var newTimeVal = document.getElementById('newRecordTime') ? document.getElementById('newRecordTime').value : '';
   var newNotes = document.getElementById('newRecordNotes').value.trim();
   var newSubject = document.getElementById('editSubjectId').value;
   var newActionName = document.getElementById('editActionName').value.trim();
@@ -5616,13 +5694,16 @@ function saveRecordCopy(origId){
 
   var nowTs = Date.now();
   var parts = newDate.split('-');
-  var newTs = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), new Date().getHours(), new Date().getMinutes()).getTime();
+  var timeParts = newTimeVal ? newTimeVal.split(':') : [String(new Date().getHours()), String(new Date().getMinutes())];
+  var newHour = parseInt(timeParts[0]) || 0;
+  var newMin = parseInt(timeParts[1]) || 0;
+  var newTs = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), newHour, newMin).getTime();
 
   var copy = JSON.parse(JSON.stringify(orig));
   copy.id = 'r' + nowTs;
   copy.date = newDate;
   copy.timestamp = newTs;
-  copy.hour = new Date().getHours();
+  copy.hour = newHour;
   copy.subject = newSubject;
   copy.notes = newNotes;
 
