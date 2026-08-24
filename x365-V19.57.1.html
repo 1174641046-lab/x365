@@ -64,14 +64,14 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   display:flex;justify-content:space-between;align-items:flex-start;
   background:transparent;border-bottom:none;
 }
-[data-theme="light"] .cal-day{
-  border:1px solid var(--sep2);
+[data-theme="light"] .nav-header{
+  border-bottom:0.8px solid var(--sep);
 }
-[data-theme="light"] .cal-day.empty{
-  border:none;
-}
-[data-theme="light"] .cal-day.today{
-  border-color:var(--green);
+[data-theme="light"] .cal-grid{
+  border:0.8px solid var(--sep2);
+  border-radius:var(--radius-lg);
+  padding:8px;
+  gap:4px;
 }
 .nav-header-left{flex:1;min-width:0}
 .nav-header h1{font-size:32px;font-weight:700;letter-spacing:-.5px}
@@ -737,8 +737,6 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
 /* ===== Light Theme Card Borders ===== */
 [data-theme="light"] .tl-day-card,
-[data-theme="light"] .tl-swiper,
-[data-theme="light"] .record-row,
 [data-theme="light"] .stat-card,
 [data-theme="light"] .ach-card,
 [data-theme="light"] .diary-card,
@@ -755,11 +753,16 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 [data-theme="light"] .subject-chip,
 [data-theme="light"] .sf-chip,
 [data-theme="light"] .stat-seg,
-[data-theme="light"] .tl-row-wrapper,
 [data-theme="light"] .encourage,
 [data-theme="light"] .cm-item-edit-form,
-[data-theme="light"] .memory-filter-chip{
-  border:0.5px solid var(--sep2);
+[data-theme="light"] .memory-filter-chip,
+[data-theme="light"] .text-input,
+[data-theme="light"] .modal-sheet input,
+[data-theme="light"] .modal-sheet select,
+[data-theme="light"] .modal-sheet textarea,
+[data-theme="light"] .memory-page input,
+[data-theme="light"] .memory-page select{
+  border:0.8px solid var(--sep2);
 }
 [data-theme="light"] .qa-item.add,
 [data-theme="light"] .subject-chip.add{
