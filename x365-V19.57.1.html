@@ -64,8 +64,14 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   display:flex;justify-content:space-between;align-items:flex-start;
   background:transparent;border-bottom:none;
 }
-[data-theme="light"] .nav-header{
-  border-bottom:1px solid var(--sep);
+[data-theme="light"] .cal-day{
+  border:1px solid var(--sep2);
+}
+[data-theme="light"] .cal-day.empty{
+  border:none;
+}
+[data-theme="light"] .cal-day.today{
+  border-color:var(--green);
 }
 .nav-header-left{flex:1;min-width:0}
 .nav-header h1{font-size:32px;font-weight:700;letter-spacing:-.5px}
@@ -728,6 +734,41 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 /* ===== V19.11 Edit buttons in memory library ===== */
 .cm-item-btn.edit{background:var(--blue);color:#fff;margin-right:6px}
 .cm-item-edit-form{padding:12px;background:var(--bg2);border-radius:var(--capsule);margin-bottom:8px}
+
+/* ===== Light Theme Card Borders ===== */
+[data-theme="light"] .tl-day-card,
+[data-theme="light"] .tl-swiper,
+[data-theme="light"] .record-row,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .ach-card,
+[data-theme="light"] .diary-card,
+[data-theme="light"] .quick-actions,
+[data-theme="light"] .weight-trend-card,
+[data-theme="light"] .cal-ach-card,
+[data-theme="light"] .settings-item,
+[data-theme="light"] .memory-form-card,
+[data-theme="light"] .subject-list-item,
+[data-theme="light"] .parse-item,
+[data-theme="light"] .cm-item,
+[data-theme="light"] .qa-item,
+[data-theme="light"] .cal-day-item,
+[data-theme="light"] .subject-chip,
+[data-theme="light"] .sf-chip,
+[data-theme="light"] .stat-seg,
+[data-theme="light"] .tl-row-wrapper,
+[data-theme="light"] .encourage,
+[data-theme="light"] .cm-item-edit-form,
+[data-theme="light"] .memory-filter-chip{
+  border:0.5px solid var(--sep2);
+}
+[data-theme="light"] .qa-item.add,
+[data-theme="light"] .subject-chip.add{
+  border-style:dashed;
+}
+[data-theme="light"] .qa-item:active,
+[data-theme="light"] .settings-item:active{
+  border-color:transparent;
+}
 </style>
 </head>
 <body>
