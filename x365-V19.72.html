@@ -3682,12 +3682,12 @@ function editPreview(){
     var dateStr = p.dateInfo ? p.dateInfo.date : formatDate(new Date());
     var timeStr = p.dateInfo && p.dateInfo.time ? p.dateInfo.time.substring(0,5) : formatTime(new Date()).substring(0,5);
     html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
-    html += '<div style="flex:1">';
+    html += '<div style="flex:1;min-width:0;overflow:hidden">';
     html += '<div class="ms-label" style="margin-bottom:4px">日期</div>';
-    html += '<input type="date" id="editDate_'+idx+'" value="'+dateStr+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">';
+    html += '<input type="date" id="editDate_'+idx+'" value="'+dateStr+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box">';
     html += '</div>';
-    html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
-    html += '<input type="time" id="editTime_'+idx+'" value="'+timeStr+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box">';
+    html += '<div style="flex:1;min-width:0;overflow:hidden"><div class="ms-label" style="margin-bottom:4px">时间</div>';
+    html += '<input type="time" id="editTime_'+idx+'" value="'+timeStr+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box">';
     html += '</div>';
     html += '</div>';
 
@@ -7303,10 +7303,10 @@ function editRecordDate(recordId){
   }
   var recTime = recHour+':'+recMin;
   html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
-  html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
-  html += '<input type="date" id="newRecordDate" value="'+recDate+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box"></div>';
-  html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
-  html += '<input type="time" id="newRecordTime" value="'+recTime+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box"></div>';
+  html += '<div style="flex:1;min-width:0;overflow:hidden"><div class="ms-label" style="margin-bottom:4px">日期</div>';
+  html += '<input type="date" id="newRecordDate" value="'+recDate+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box"></div>';
+  html += '<div style="flex:1;min-width:0;overflow:hidden"><div class="ms-label" style="margin-bottom:4px">时间</div>';
+  html += '<input type="time" id="newRecordTime" value="'+recTime+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box"></div>';
   html += '</div>';
   
   // Notes
