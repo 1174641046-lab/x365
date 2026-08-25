@@ -8568,6 +8568,7 @@ function saveEditedUserName(){
 
 // V19.58: 动作排序弹窗
 var _sortDrag = null;
+var _sortTimer = null;
 function openActionOrderModal(){
   var subId = STATE.calFilter;
   if(subId === 'all'){ showToast('请先选择一个主体'); return; }
@@ -8620,19 +8621,36 @@ function openActionOrderModal(){
 }
 
 function onSortTouchStart(e, el){
-  _sortDrag = {el: el, startY: e.touches[0].clientY, startIdx: parseInt(el.dataset.idx), moved: false};
-  el.classList.add('dragging');
+  var y = e.touches[0].clientY;
+  _sortDrag = {el: el, startY: y, startIdx: parseInt(el.dataset.idx), moved: false, dragging: false};
+  _sortTimer = setTimeout(function(){
+    if(_sortDrag && _sortDrag.el === el){
+      _sortDrag.dragging = true;
+      el.classList.add('dragging');
+    }
+  }, 300);
 }
 function onSortTouchMove(e, el){
   if(!_sortDrag || _sortDrag.el !== el) return;
-  e.preventDefault();
-  var dy = e.touches[0].clientY - _sortDrag.startY;
-  if(Math.abs(dy) > 10) _sortDrag.moved = true;
-  el.style.transform = 'translateY('+dy+'px)';
+  var y = e.touches[0].clientY;
+  var dy = y - _sortDrag.startY;
+  // 如果移动距离超过10px但还没进入拖拽态，则取消定时器（视为滚动）
+  if(!_sortDrag.dragging && Math.abs(dy) > 10){
+    if(_sortTimer){ clearTimeout(_sortTimer); _sortTimer = null; }
+    _sortDrag = null;
+    return;
+  }
+  // 只有在拖拽态才移动元素
+  if(_sortDrag.dragging){
+    e.preventDefault();
+    _sortDrag.moved = true;
+    el.style.transform = 'translateY('+dy+'px)';
+  }
 }
 function onSortTouchEnd(e, el){
   if(!_sortDrag || _sortDrag.el !== el) return;
-  if(_sortDrag.moved){
+  if(_sortTimer){ clearTimeout(_sortTimer); _sortTimer = null; }
+  if(_sortDrag.dragging && _sortDrag.moved){
     e.preventDefault();
     var list = document.getElementById('sortList');
     var items = Array.from(list.querySelectorAll('.sort-item'));
