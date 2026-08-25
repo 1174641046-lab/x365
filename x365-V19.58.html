@@ -459,10 +459,9 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .modal-sheet .btn-cancel{background:var(--card2);color:var(--text2)}
 
 /* Action sort modal */
-.sort-list{margin-bottom:12px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;touch-action:pan-y;-webkit-user-select:none;user-select:none}
-.sort-item.dragging{opacity:.6;background:var(--card3)}
-.sort-item .sort-handle{font-size:18px;color:var(--text4);cursor:grab;padding:4px;-webkit-user-select:none;user-select:none}
+.sort-list{margin-bottom:12px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;-webkit-user-select:none;user-select:none}
+.sort-handle{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text4);cursor:grab;-webkit-user-select:none;user-select:none;flex-shrink:0;touch-action:none}
 .sort-item .sort-emoji{font-size:18px}
 .sort-item .sort-name{flex:1;font-size:15px;color:var(--text)}
 .sort-item .sort-count{font-size:12px;color:var(--text4);min-width:36px;text-align:right}
@@ -6239,87 +6238,122 @@ function renderDailyDetail(records, periodLabel){
   });
   html += '</div></div>';
 
-  // V19.58: 热力图替代当日明细
-  html += renderHeatmap(records, periodLabel);
-
   // 体重趋势卡片
-  html += renderWeightTrend(records);
+  html += renderWeightTrend(weightRecords);
+
+  // V19.59: 热力图放在所有卡片底部
+  html += renderHeatmap(records, subtitle);
 
   return html;
 }
 
 function renderHeatmap(records, periodLabel){
   var tab = STATE.currentStatTab;
-  var bars = [];
-  var maxCount = 0;
+  var src = STATE.records;
+  if(STATE.stFilter !== 'all'){ src = src.filter(function(r){return r.subject === STATE.stFilter}); }
   
-  if(tab === 'day'){
-    // 当日tab：最近7天（含今天）
-    var today = new Date();
-    for(var i=6; i>=0; i--){
-      var d = new Date(today);
-      d.setDate(today.getDate() - i);
-      var ds = formatDate(d);
-      // 从全部records统计（已受stFilter过滤）
-      var src = STATE.records;
-      if(STATE.stFilter !== 'all'){ src = src.filter(function(r){return r.subject === STATE.stFilter}); }
-      var count = src.filter(function(r){return r.date === ds}).length;
-      var label = i===0 ? '今' : i===1 ? '昨' : (d.getMonth()+1)+'/'+d.getDate();
-      bars.push({date: ds, count: count, label: label});
-      if(count > maxCount) maxCount = count;
+  // 收集每日记录数
+  var dayMap = {};
+  src.forEach(function(r){ dayMap[r.date] = (dayMap[r.date]||0) + 1; });
+  var maxCount = 0;
+  for(var k in dayMap){ if(dayMap[k] > maxCount) maxCount = dayMap[k]; }
+  
+  var html = '';
+  
+  if(tab === 'day' || tab === 'week'){
+    // ==== 方案1：横向柱状图 ====
+    var bars = [];
+    if(tab === 'day'){
+      // 最近7天
+      var today = new Date();
+      for(var i=6; i>=0; i--){
+        var d = new Date(today);
+        d.setDate(today.getDate() - i);
+        var ds = formatDate(d);
+        var count = dayMap[ds] || 0;
+        var label = i===0 ? '今' : i===1 ? '昨' : (d.getMonth()+1)+'/'+d.getDate();
+        bars.push({count: count, label: label});
+        if(count > maxCount) maxCount = count;
+      }
+    } else {
+      // 本周一到周日
+      var wdRef = getStatDate();
+      var ws = new Date(wdRef);
+      var dow = ws.getDay() || 7;
+      ws.setDate(ws.getDate() - dow + 1); // 本周一
+      for(var i=0; i<=6; i++){
+        var d = new Date(ws);
+        d.setDate(ws.getDate() + i);
+        var ds = formatDate(d);
+        var count = dayMap[ds] || 0;
+        bars.push({count: count, label: ['一','二','三','四','五','六','日'][i]});
+        if(count > maxCount) maxCount = count;
+      }
     }
-  } else if(tab === 'week'){
-    // 当周tab：本周一到周日
-    var wdRef = getStatDate();
-    var ws = new Date(wdRef);
-    var dow = ws.getDay() || 7;
-    ws.setDate(ws.getDate() - dow + 1); // 本周一
-    for(var i=0; i<=6; i++){
-      var d = new Date(ws);
-      d.setDate(ws.getDate() + i);
-      var ds = formatDate(d);
-      var count = records.filter(function(r){return r.date === ds}).length;
-      bars.push({date: ds, count: count, label: ['一','二','三','四','五','六','日'][i]});
-      if(count > maxCount) maxCount = count;
-    }
+    
+    var title = tab==='day' ? '最近7天' : '本周活动';
+    html = '<div class="stat-card">' +
+      '<div class="sc-title-wrap"><div class="sc-title-text">'+title+'</div></div>' +
+      '<div class="sc-body" style="padding:12px 16px">' +
+      '<div style="display:flex;gap:6px;align-items:flex-end;height:80px;padding:8px 0;">';
+    
+    bars.forEach(function(bar){
+      var pct = maxCount > 0 ? (bar.count / maxCount) * 100 : 0;
+      var alpha = bar.count > 0 ? 0.2 + (bar.count / maxCount) * 0.7 : 0;
+      var bg = bar.count > 0 ? 'rgba(48,209,88,'+alpha+')' : 'var(--card2)';
+      var txtColor = alpha > 0.55 ? '#000' : (bar.count > 0 ? 'var(--green)' : 'var(--text4)');
+      html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0">' +
+        '<div style="font-size:10px;font-weight:600;color:'+txtColor+';white-space:nowrap;">'+bar.count+'</div>' +
+        '<div style="width:100%;flex:1;display:flex;align-items:flex-end;">' +
+        '<div style="width:100%;height:'+Math.max(pct, 3)+'%;border-radius:6px;background:'+bg+';"></div>' +
+        '</div>' +
+        '<div style="font-size:10px;color:var(--text4);white-space:nowrap;">'+bar.label+'</div>' +
+        '</div>';
+    });
+    
+    html += '</div></div></div>';
+    
   } else {
-    // 当月tab：本月所有天
+    // ==== 方案3：月日历网格 ====
     var mdRef = getStatDate();
     var year = mdRef.getFullYear();
     var month = mdRef.getMonth();
     var dim = new Date(year, month+1, 0).getDate();
+    var firstDow = new Date(year, month, 1).getDay(); // 0=周日,1=周一...
+    var monthLabels = ['日','一','二','三','四','五','六'];
+    
+    html = '<div class="stat-card">' +
+      '<div class="sc-title-wrap"><div class="sc-title-text">'+year+'年'+(month+1)+'月</div></div>' +
+      '<div class="sc-body" style="padding:12px 16px">' +
+      '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+    
+    // 表头
+    for(var i=0; i<7; i++){
+      html += '<div style="text-align:center;font-size:10px;color:var(--text4);padding:4px 0">'+monthLabels[i]+'</div>';
+    }
+    
+    // 前面补空
+    for(var i=0; i<firstDow; i++){
+      html += '<div></div>';
+    }
+    
+    // 日期
     for(var i=1; i<=dim; i++){
       var d = new Date(year, month, i);
       var ds = formatDate(d);
-      var count = records.filter(function(r){return r.date === ds}).length;
-      bars.push({date: ds, count: count, label: String(i)});
-      if(count > maxCount) maxCount = count;
+      var count = dayMap[ds] || 0;
+      var alpha = maxCount > 0 ? (count / maxCount) * 0.85 : 0;
+      var bg = count > 0 ? 'rgba(48,209,88,'+alpha+')' : 'var(--card2)';
+      var txtColor = alpha > 0.5 ? '#000' : (count > 0 ? 'var(--green)' : 'var(--text3)');
+      html += '<div style="aspect-ratio:1;border-radius:8px;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:11px;">' +
+        '<span style="font-size:9px;color:'+(count>0?txtColor:'var(--text4)')+'">'+i+'</span>' +
+        (count > 0 ? '<span style="font-size:11px;font-weight:700;color:'+txtColor+'">'+count+'</span>' : '') +
+        '</div>';
     }
+    
+    html += '</div></div></div>';
   }
   
-  if(bars.length === 0) return '';
-  
-  var title = tab==='day' ? '最近7天' : tab==='week' ? '本周活动' : '本月活动';
-  var html = '<div class="stat-card">' +
-    '<div class="sc-title-wrap"><div class="sc-title-text">'+title+'</div></div>' +
-    '<div class="sc-body" style="padding:12px 16px">' +
-    '<div style="display:flex;gap:4px;align-items:flex-end;height:60px;padding:4px 0;">';
-  
-  bars.forEach(function(bar){
-    var pct = maxCount > 0 ? (bar.count / maxCount) * 100 : 0;
-    var alpha = bar.count > 0 ? 0.15 + (bar.count / maxCount) * 0.75 : 0;
-    var bg = bar.count > 0 ? 'rgba(48,209,88,'+alpha+')' : 'var(--card2)';
-    var txtColor = alpha > 0.5 ? '#000' : (bar.count > 0 ? 'var(--green)' : 'var(--text4)');
-    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0">' +
-      '<div style="font-size:9px;font-weight:600;color:'+txtColor+';white-space:nowrap;">'+bar.count+'</div>' +
-      '<div style="width:100%;flex:1;display:flex;align-items:flex-end;">' +
-      '<div style="width:100%;height:'+Math.max(pct, 4)+'%;border-radius:4px;background:'+bg+';"></div>' +
-      '</div>' +
-      '<div style="font-size:9px;color:var(--text4);white-space:nowrap;">'+bar.label+'</div>' +
-      '</div>';
-  });
-  
-  html += '</div></div></div>';
   return html;
 }
 
@@ -8621,8 +8655,8 @@ function openActionOrderModal(){
   html += '<div class="sort-list" id="sortList">';
   names.forEach(function(name, idx){
     var a = actionMap[name];
-    html += '<div class="sort-item" data-name="'+escapeHtml(name).replace(/"/g,'&quot;')+'" data-idx="'+idx+'" ontouchstart="onSortTouchStart(event,this)" ontouchmove="onSortTouchMove(event,this)" ontouchend="onSortTouchEnd(event,this)">'
-      + '<span class="sort-handle">☰</span>'
+    html += '<div class="sort-item" data-name="'+escapeHtml(name).replace(/"/g,'&quot;')+'" data-idx="'+idx+'">'
+      + '<span class="sort-handle" ontouchstart="onHandleTouchStart(event,this)" ontouchmove="onHandleTouchMove(event,this)" ontouchend="onHandleTouchEnd(event,this)">☰</span>'
       + '<span class="sort-emoji">'+a.icon+'</span>'
       + '<span class="sort-name">'+escapeHtml(name)+'</span>'
       + '<span class="sort-count">'+a.count+'次</span>'
@@ -8638,9 +8672,11 @@ function openActionOrderModal(){
   _sortDrag = null;
 }
 
-function onSortTouchStart(e, el){
+function onHandleTouchStart(e, handleEl){
+  e.stopPropagation();
+  var el = handleEl.parentNode;
   var y = e.touches[0].clientY;
-  _sortDrag = {el: el, startY: y, startIdx: parseInt(el.dataset.idx), moved: false, dragging: false};
+  _sortDrag = {el: el, handle: handleEl, startY: y, startIdx: parseInt(el.dataset.idx), moved: false, dragging: false};
   _sortTimer = setTimeout(function(){
     if(_sortDrag && _sortDrag.el === el){
       _sortDrag.dragging = true;
@@ -8648,24 +8684,27 @@ function onSortTouchStart(e, el){
     }
   }, 300);
 }
-function onSortTouchMove(e, el){
+function onHandleTouchMove(e, handleEl){
+  e.stopPropagation();
+  var el = handleEl.parentNode;
   if(!_sortDrag || _sortDrag.el !== el) return;
   var y = e.touches[0].clientY;
   var dy = y - _sortDrag.startY;
-  // 如果移动距离超过10px但还没进入拖拽态，则取消定时器（视为滚动）
+  // 移动超过10px且未进入拖拽态 -> 取消（视为滚动）
   if(!_sortDrag.dragging && Math.abs(dy) > 10){
     if(_sortTimer){ clearTimeout(_sortTimer); _sortTimer = null; }
     _sortDrag = null;
     return;
   }
-  // 只有在拖拽态才移动元素
   if(_sortDrag.dragging){
     e.preventDefault();
     _sortDrag.moved = true;
     el.style.transform = 'translateY('+dy+'px)';
   }
 }
-function onSortTouchEnd(e, el){
+function onHandleTouchEnd(e, handleEl){
+  e.stopPropagation();
+  var el = handleEl.parentNode;
   if(!_sortDrag || _sortDrag.el !== el) return;
   if(_sortTimer){ clearTimeout(_sortTimer); _sortTimer = null; }
   if(_sortDrag.dragging && _sortDrag.moved){
@@ -8683,7 +8722,6 @@ function onSortTouchEnd(e, el){
       if(dist < closestDist){ closestDist = dist; closest = item; }
     });
     if(closest){ list.insertBefore(el, centerY < (closest.getBoundingClientRect().top + closest.getBoundingClientRect().height/2) ? closest : closest.nextSibling); }
-    // 重新编号
     Array.from(list.querySelectorAll('.sort-item')).forEach(function(item, i){ item.dataset.idx = i; });
   }
   el.classList.remove('dragging');
