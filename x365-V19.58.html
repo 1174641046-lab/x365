@@ -460,7 +460,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
 /* Action sort modal */
 .sort-list{margin-bottom:12px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;touch-action:none;-webkit-user-select:none;user-select:none}
+.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;touch-action:pan-y;-webkit-user-select:none;user-select:none}
 .sort-item.dragging{opacity:.6;background:var(--card3)}
 .sort-item .sort-handle{font-size:18px;color:var(--text4);cursor:grab;padding:4px;-webkit-user-select:none;user-select:none}
 .sort-item .sort-emoji{font-size:18px}
@@ -6312,7 +6312,9 @@ function renderHeatmap(records, periodLabel){
     var txtColor = alpha > 0.5 ? '#000' : (bar.count > 0 ? 'var(--green)' : 'var(--text4)');
     html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0">' +
       '<div style="font-size:9px;font-weight:600;color:'+txtColor+';white-space:nowrap;">'+bar.count+'</div>' +
+      '<div style="width:100%;flex:1;display:flex;align-items:flex-end;">' +
       '<div style="width:100%;height:'+Math.max(pct, 4)+'%;border-radius:4px;background:'+bg+';"></div>' +
+      '</div>' +
       '<div style="font-size:9px;color:var(--text4);white-space:nowrap;">'+bar.label+'</div>' +
       '</div>';
   });
