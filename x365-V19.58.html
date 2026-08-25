@@ -6253,12 +6253,13 @@ function renderHeatmap(records, periodLabel){
   // 收集每日记录数
   var dayMap = {};
   records.forEach(function(r){ dayMap[r.date] = (dayMap[r.date]||0) + 1; });
-  var dates = Object.keys(dayMap).sort();
-  var maxCount = Math.max.apply(Math, Object.values(dayMap));
+  var maxCount = 0;
+  for(var k in dayMap){ if(dayMap[k] > maxCount) maxCount = dayMap[k]; }
   // 生成7列热力图（周一到周日），取最近4周
   var today = new Date();
   var startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1); // 周一
+  var dow = today.getDay() || 7; // 周日=7, 周一=1
+  startOfWeek.setDate(today.getDate() - dow + 1); // 本周一
   startOfWeek.setHours(0,0,0,0);
   
   var weeks = [];
