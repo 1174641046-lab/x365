@@ -460,7 +460,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
 /* Action sort modal */
 .sort-list{margin-bottom:12px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;touch-action:none;-webkit-user-select:none;user-select:none}
 .sort-item.dragging{opacity:.6;background:var(--card3)}
 .sort-item .sort-handle{font-size:18px;color:var(--text4);cursor:grab;padding:4px;-webkit-user-select:none;user-select:none}
 .sort-item .sort-emoji{font-size:18px}
@@ -8632,9 +8632,8 @@ function onSortTouchMove(e, el){
 }
 function onSortTouchEnd(e, el){
   if(!_sortDrag || _sortDrag.el !== el) return;
-  el.classList.remove('dragging');
-  el.style.transform = '';
   if(_sortDrag.moved){
+    e.preventDefault();
     var list = document.getElementById('sortList');
     var items = Array.from(list.querySelectorAll('.sort-item'));
     var rect = el.getBoundingClientRect();
@@ -8651,6 +8650,8 @@ function onSortTouchEnd(e, el){
     // 重新编号
     Array.from(list.querySelectorAll('.sort-item')).forEach(function(item, i){ item.dataset.idx = i; });
   }
+  el.classList.remove('dragging');
+  el.style.transform = '';
   _sortDrag = null;
 }
 function saveActionOrder(){
