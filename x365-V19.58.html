@@ -6131,11 +6131,18 @@ function renderStats(){
   var streak = calculateStreak(dateSet);
   var subjectCount = Object.keys(subSet).length;
 
-  document.getElementById('heroTotal').textContent = total;
   document.getElementById('heroLabel').textContent = tab==='day'?'当日记录':tab==='week'?'当周记录':'当月记录';
-  document.getElementById('heroDays').textContent = totalDays;
-  document.getElementById('heroStreak').textContent = streak;
-  document.getElementById('heroSubjects').textContent = subjectCount;
+  // V19.58: 当日tab隐藏辅助数字行，只显示总数
+  var shRow = document.getElementById('statsHero').querySelector('.sh-row');
+  if(tab === 'day'){
+    if(shRow) shRow.style.display = 'none';
+  }else{
+    if(shRow) shRow.style.display = 'flex';
+    document.getElementById('heroDays').textContent = totalDays;
+    document.getElementById('heroStreak').textContent = streak;
+    document.getElementById('heroSubjects').textContent = subjectCount;
+  }
+  document.getElementById('heroTotal').textContent = total;
 
   renderStatsContent(periodRecords, periodLabel);
   STATE._stats = {total:total,totalDays:totalDays,streak:streak,catCount:Object.keys(catSet).length,maxDaily:maxDaily,hasEarly:hasEarly,hasLate:hasLate,subjectCount:subjectCount};
@@ -8591,7 +8598,6 @@ function openActionOrderModal(){
   });
 
   var html = '<div class="ms-title" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'+escapeHtml(sub.name)+' 动作排序<div onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;color:var(--text3)">✕</div></div>';
-  html += '<div class="sort-hint">长按并拖动调整顺序，按使用频率显示</div>';
   html += '<div class="sort-list" id="sortList">';
   names.forEach(function(name, idx){
     var a = actionMap[name];
@@ -8604,7 +8610,7 @@ function openActionOrderModal(){
   });
   html += '</div>';
   html += '<div class="sort-actions">';
-  html += '<button class="btn btn-primary" style="width:100%" onclick="saveActionOrder()">保存顺序</button>';
+  html += '<button class="btn btn-primary" style="width:100%" onclick="saveActionOrder()">保存排序</button>';
   html += '</div>';
 
   document.getElementById('modalContent').innerHTML = html;
