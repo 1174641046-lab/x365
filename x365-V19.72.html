@@ -3680,15 +3680,21 @@ function editPreview(){
     html += '</div>';
 
     var dateStr = p.dateInfo ? p.dateInfo.date : formatDate(new Date());
+    var shortDateStr = dateStr.substring(5);
     var timeStr = p.dateInfo && p.dateInfo.time ? p.dateInfo.time.substring(0,5) : formatTime(new Date()).substring(0,5);
     html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
-    html += '<div style="flex:1;min-width:0;overflow:hidden">';
+    html += '<div style="flex:1">';
     html += '<div class="ms-label" style="margin-bottom:4px">日期</div>';
-    html += '<input type="date" id="editDate_'+idx+'" value="'+dateStr+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box">';
-    html += '</div>';
-    html += '<div style="flex:1;min-width:0;overflow:hidden"><div class="ms-label" style="margin-bottom:4px">时间</div>';
-    html += '<input type="time" id="editTime_'+idx+'" value="'+timeStr+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box">';
-    html += '</div>';
+    html += '<div style="position:relative">';
+    html += '<div style="padding:6px 8px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:12px;text-align:center;box-sizing:border-box">'+shortDateStr+'</div>';
+    html += '<input type="date" id="editDate_'+idx+'" value="'+dateStr+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value.substring(5)">';
+    html += '</div></div>';
+    html += '<div style="flex:1">';
+    html += '<div class="ms-label" style="margin-bottom:4px">时间</div>';
+    html += '<div style="position:relative">';
+    html += '<div style="padding:6px 8px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:12px;text-align:center;box-sizing:border-box">'+timeStr+'</div>';
+    html += '<input type="time" id="editTime_'+idx+'" value="'+timeStr+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value">';
+    html += '</div></div>';
     html += '</div>';
 
     html += '<div class="ms-label">备注</div>';
@@ -7301,12 +7307,18 @@ function editRecordDate(recordId){
     var recD = new Date(record.timestamp);
     recMin = String(recD.getMinutes()).padStart(2,'0');
   }
-  var recTime = recHour+':'+recMin;
+  var recShortDate = recDate.substring(5);
   html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
-  html += '<div style="flex:1;min-width:0;overflow:hidden"><div class="ms-label" style="margin-bottom:4px">日期</div>';
-  html += '<input type="date" id="newRecordDate" value="'+recDate+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box"></div>';
-  html += '<div style="flex:1;min-width:0;overflow:hidden"><div class="ms-label" style="margin-bottom:4px">时间</div>';
-  html += '<input type="time" id="newRecordTime" value="'+recTime+'" style="width:100%;padding:6px 8px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:12px;outline:none;box-sizing:border-box"></div>';
+  html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
+  html += '<div style="position:relative">';
+  html += '<div style="padding:6px 8px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:12px;text-align:center;box-sizing:border-box">'+recShortDate+'</div>';
+  html += '<input type="date" id="newRecordDate" value="'+recDate+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value.substring(5)">';
+  html += '</div></div>';
+  html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
+  html += '<div style="position:relative">';
+  html += '<div style="padding:6px 8px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:12px;text-align:center;box-sizing:border-box">'+recTime+'</div>';
+  html += '<input type="time" id="newRecordTime" value="'+recTime+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value">';
+  html += '</div></div>';
   html += '</div>';
   
   // Notes
