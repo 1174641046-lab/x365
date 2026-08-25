@@ -2629,7 +2629,7 @@ var STATE = {
   stFilter: 'all',
   stActionFilter: 'all',
   calFilter: 'all',
-  calActionFilter: 'all',
+  calActionFilter: [],
   _stats: {},
   customSubjects: [],
   customActions: {},
@@ -6808,7 +6808,7 @@ function setFilter(containerId, subjectId){
     renderTimeline();
   }else if(containerId === 'calSubjectFilter'){
     STATE.calFilter = subjectId;
-    STATE.calActionFilter = 'all';
+    STATE.calActionFilter = [];
     renderCalendar();
     renderCalActionFilter();
   }else{
@@ -6847,17 +6847,27 @@ function renderCalActionFilter(){
   }
 
   container.style.display = 'flex';
-  var html = '<div class="sf-chip sf-all '+(STATE.calActionFilter==='all'?'active':'')+'" onclick="setCalActionFilter(\'all\')"><span class="sf-name">全部动作</span></div>';
+  var activeAll = STATE.calActionFilter.length === 0 ? 'active' : '';
+  var html = '<div class="sf-chip sf-all '+activeAll+'" onclick="setCalActionFilter(\'all\')"><span class="sf-name">全部动作</span></div>';
   names.forEach(function(name){
     var a = actionNames[name];
-    var active = STATE.calActionFilter === name ? 'active' : '';
+    var active = STATE.calActionFilter.indexOf(name) !== -1 ? 'active' : '';
     html += '<div class="sf-chip '+active+'" onclick="setCalActionFilter(\''+escapeHtml(name).replace(/'/g,"\\'")+'\')"><span class="sf-emoji">'+(a.icon||'📝')+'</span><span class="sf-name">'+escapeHtml(name)+'</span></div>';
   });
   container.innerHTML = html;
 }
 
 function setCalActionFilter(name){
-  STATE.calActionFilter = name;
+  if(name === 'all'){
+    STATE.calActionFilter = [];
+  }else{
+    var idx = STATE.calActionFilter.indexOf(name);
+    if(idx !== -1){
+      STATE.calActionFilter.splice(idx, 1);
+    }else{
+      STATE.calActionFilter.push(name);
+    }
+  }
   renderCalendar();
   renderCalActionFilter();
 }
@@ -8204,13 +8214,13 @@ function renderCalendar(){
   if(STATE.calFilter !== 'all'){
     records = records.filter(function(r){return r.subject === STATE.calFilter});
   }
-  // V19.14: 动作筛选
-  if(STATE.calActionFilter !== 'all'){
+  // V19.14: 动作筛选（多选）
+  if(STATE.calActionFilter.length > 0){
     records = records.filter(function(r){
-      return r.actions.some(function(a){return a.standardName === STATE.calActionFilter});
+      return r.actions.some(function(a){return STATE.calActionFilter.indexOf(a.standardName) !== -1});
     });
   }
-  
+
   // Group by date
   var dateMap = {};
   records.forEach(function(r){
@@ -8275,13 +8285,13 @@ function renderCalDayDetail(dateStr){
   if(STATE.calFilter !== 'all'){
     records = records.filter(function(r){return r.subject === STATE.calFilter});
   }
-  // V19.14: 动作筛选
-  if(STATE.calActionFilter !== 'all'){
+  // V19.14: 动作筛选（多选）
+  if(STATE.calActionFilter.length > 0){
     records = records.filter(function(r){
-      return r.actions.some(function(a){return a.standardName === STATE.calActionFilter});
+      return r.actions.some(function(a){return STATE.calActionFilter.indexOf(a.standardName) !== -1});
     });
   }
-  
+
   if(records.length === 0){
     detail.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text4)">'+shortDate(dateStr)+' 没有记录</div>';
     return;
