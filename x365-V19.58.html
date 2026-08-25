@@ -460,9 +460,9 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
 /* Action sort modal */
 .sort-list{margin-bottom:12px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;touch-action:pan-y;user-select:none}
+.sort-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border-radius:var(--radius);margin-bottom:6px;touch-action:pan-y;-webkit-user-select:none;user-select:none}
 .sort-item.dragging{opacity:.6;background:var(--card3)}
-.sort-item .sort-handle{font-size:18px;color:var(--text4);cursor:grab;padding:4px}
+.sort-item .sort-handle{font-size:18px;color:var(--text4);cursor:grab;padding:4px;-webkit-user-select:none;user-select:none}
 .sort-item .sort-emoji{font-size:18px}
 .sort-item .sort-name{flex:1;font-size:15px;color:var(--text)}
 .sort-item .sort-count{font-size:12px;color:var(--text4);min-width:36px;text-align:right}
@@ -1056,14 +1056,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
           </div>
           <div class="settings-item-arrow">›</div>
         </div>
-        <div class="settings-item" onclick="openActionOrderModal()">
-          <div class="settings-item-icon">🔄</div>
-          <div class="settings-item-body">
-            <div class="settings-item-name">动作排序</div>
-            <div class="settings-item-desc">调整打卡页动作筛选器的排列顺序</div>
-          </div>
-          <div class="settings-item-arrow">›</div>
-        </div>
+        <!-- 动作排序入口已移至打卡页筛选器行末尾 -->
       </div>
 
       <div class="settings-group">
@@ -6239,40 +6232,71 @@ function renderDailyDetail(records, periodLabel){
   });
   html += '</div></div>';
 
-  // 当日明细时间线（排除体重相关）
-  html += '<div class="stat-card">' +
-    '<div class="sc-title-wrap" onclick="toggleCard(this.querySelector(\'.sc-expand-btn\'),\'detail\')"><div class="sc-title-text">当日明细</div><div class="sc-expand-btn">∨</div></div>' +
-    '<div class="sc-body" id="cardBody_detail">';
-  records.forEach(function(r){
-    var sub = getSubject(r.subject) || {emoji:'🙋',color:'#30D158',name:'我'};
-    r.actions.forEach(function(a){
-      // 排除体重相关数据
-      if(a.standardName === '称体重' || a.standardName === '称重') return;
-      // 明细也区分时间型/数量型显示
-      var detailCustomAct = STATE.customActions[a.standardName];
-      var detailHasDuration = detailCustomAct && detailCustomAct.durationPerTime > 0;
-      var detailIsTimeUnit = a.unit === '分钟' || a.unit === '分';
-      var detailQty, detailUnit;
-      if(detailIsTimeUnit){
-        detailQty = a.quantity; detailUnit = '分钟';
-      }else if(detailHasDuration){
-        detailQty = a.quantity * detailCustomAct.durationPerTime; detailUnit = '分钟';
-      }else{
-        detailQty = a.quantity; detailUnit = a.unit;
-      }
-      html += '<div class="daily-row">' +
-        '<div class="dr-time">'+r.time.substring(0,5)+'</div>' +
-        '<div class="dr-icon" style="background:'+sub.color+'22">'+getActionIcon(a.standardName, a.icon, a.category)+'</div>' +
-        '<div class="dr-body"><div class="dr-name">'+a.standardName+'</div><div class="dr-subject">'+sub.name+' · '+a.category+'</div></div>' +
-        '<div class="dr-qty num">'+detailQty+'<span class="u">'+detailUnit+'</span></div>' +
-      '</div>';
-    });
-  });
-  html += '</div></div>';
+  // V19.58: 热力图替代当日明细
+  html += renderHeatmap(records, periodLabel);
 
   // 体重趋势卡片
   html += renderWeightTrend(records);
 
+  return html;
+}
+
+function renderHeatmap(records, periodLabel){
+  if(records.length === 0) return '';
+  // 收集每日记录数
+  var dayMap = {};
+  records.forEach(function(r){ dayMap[r.date] = (dayMap[r.date]||0) + 1; });
+  var dates = Object.keys(dayMap).sort();
+  var maxCount = Math.max.apply(Math, Object.values(dayMap));
+  // 生成7列热力图（周一到周日），取最近4周
+  var today = new Date();
+  var startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1); // 周一
+  startOfWeek.setHours(0,0,0,0);
+  
+  var weeks = [];
+  for(var w=0; w<4; w++){
+    var week = [];
+    for(var d=0; d<7; d++){
+      var cellDate = new Date(startOfWeek);
+      cellDate.setDate(startOfWeek.getDate() - (w*7) + d);
+      var ds = formatDate(cellDate);
+      var count = dayMap[ds] || 0;
+      var intensity = maxCount > 0 ? count / maxCount : 0;
+      var alpha = 0.1 + intensity * 0.85;
+      week.push({date: ds, count: count, alpha: alpha, day: cellDate.getDate()});
+    }
+    weeks.unshift(week); // 最早的周在前面
+  }
+  
+  var daysLabel = ['一','二','三','四','五','六','日'];
+  var html = '<div class="stat-card">' +
+    '<div class="sc-title-wrap"><div class="sc-title-text">活动热力图</div></div>' +
+    '<div class="sc-body" style="padding:12px 16px">' +
+    '<div style="display:flex;gap:4px;flex-direction:column">';
+  
+  // 表头：周数
+  html += '<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px">' +
+    '<div style="width:20px;font-size:10px;color:var(--text4)"></div>';
+  weeks.forEach(function(week, wi){
+    html += '<div style="flex:1;text-align:center;font-size:10px;color:var(--text4)">W'+(wi+1)+'</div>';
+  });
+  html += '</div>';
+  
+  // 每天一行
+  for(var d=0; d<7; d++){
+    html += '<div style="display:flex;gap:4px;align-items:center;margin-bottom:3px">' +
+      '<div style="width:20px;font-size:10px;color:var(--text4);text-align:center">'+daysLabel[d]+'</div>';
+    weeks.forEach(function(week){
+      var cell = week[d];
+      var bg = cell.count > 0 ? 'rgba(48,209,88,'+cell.alpha+')' : 'var(--card2)';
+      var color = cell.alpha > 0.5 ? '#000' : 'var(--text3)';
+      html += '<div style="flex:1;aspect-ratio:1;border-radius:3px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:'+color+'">'+cell.count+'</div>';
+    });
+    html += '</div>';
+  }
+  
+  html += '</div></div></div>';
   return html;
 }
 
@@ -6889,6 +6913,8 @@ function renderCalActionFilter(){
     var active = STATE.calActionFilter.indexOf(name) !== -1 ? 'active' : '';
     html += '<div class="sf-chip '+active+'" onclick="setCalActionFilter(\''+escapeHtml(name).replace(/'/g,"\\'")+'\')"><span class="sf-emoji">'+(a.icon||'📝')+'</span><span class="sf-name">'+escapeHtml(name)+'</span></div>';
   });
+  // V19.58: 末尾添加动作排序入口
+  html += '<div class="sf-chip" onclick="openActionOrderModal()" style="color:var(--text4)"><span class="sf-emoji">🔄</span><span class="sf-name">排序</span></div>';
   container.innerHTML = html;
 }
 
