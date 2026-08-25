@@ -6249,60 +6249,73 @@ function renderDailyDetail(records, periodLabel){
 }
 
 function renderHeatmap(records, periodLabel){
-  if(records.length === 0) return '';
-  // 收集每日记录数
-  var dayMap = {};
-  records.forEach(function(r){ dayMap[r.date] = (dayMap[r.date]||0) + 1; });
+  var tab = STATE.currentStatTab;
+  var bars = [];
   var maxCount = 0;
-  for(var k in dayMap){ if(dayMap[k] > maxCount) maxCount = dayMap[k]; }
-  // 生成7列热力图（周一到周日），取最近4周
-  var today = new Date();
-  var startOfWeek = new Date(today);
-  var dow = today.getDay() || 7; // 周日=7, 周一=1
-  startOfWeek.setDate(today.getDate() - dow + 1); // 本周一
-  startOfWeek.setHours(0,0,0,0);
   
-  var weeks = [];
-  for(var w=0; w<4; w++){
-    var week = [];
-    for(var d=0; d<7; d++){
-      var cellDate = new Date(startOfWeek);
-      cellDate.setDate(startOfWeek.getDate() - (w*7) + d);
-      var ds = formatDate(cellDate);
-      var count = dayMap[ds] || 0;
-      var intensity = maxCount > 0 ? count / maxCount : 0;
-      var alpha = 0.1 + intensity * 0.85;
-      week.push({date: ds, count: count, alpha: alpha, day: cellDate.getDate()});
+  if(tab === 'day'){
+    // 当日tab：最近7天（含今天）
+    var today = new Date();
+    for(var i=6; i>=0; i--){
+      var d = new Date(today);
+      d.setDate(today.getDate() - i);
+      var ds = formatDate(d);
+      // 从全部records统计（已受stFilter过滤）
+      var src = STATE.records;
+      if(STATE.stFilter !== 'all'){ src = src.filter(function(r){return r.subject === STATE.stFilter}); }
+      var count = src.filter(function(r){return r.date === ds}).length;
+      var label = i===0 ? '今' : i===1 ? '昨' : (d.getMonth()+1)+'/'+d.getDate();
+      bars.push({date: ds, count: count, label: label});
+      if(count > maxCount) maxCount = count;
     }
-    weeks.unshift(week); // 最早的周在前面
+  } else if(tab === 'week'){
+    // 当周tab：本周一到周日
+    var wdRef = getStatDate();
+    var ws = new Date(wdRef);
+    var dow = ws.getDay() || 7;
+    ws.setDate(ws.getDate() - dow + 1); // 本周一
+    for(var i=0; i<=6; i++){
+      var d = new Date(ws);
+      d.setDate(ws.getDate() + i);
+      var ds = formatDate(d);
+      var count = records.filter(function(r){return r.date === ds}).length;
+      bars.push({date: ds, count: count, label: ['一','二','三','四','五','六','日'][i]});
+      if(count > maxCount) maxCount = count;
+    }
+  } else {
+    // 当月tab：本月所有天
+    var mdRef = getStatDate();
+    var year = mdRef.getFullYear();
+    var month = mdRef.getMonth();
+    var dim = new Date(year, month+1, 0).getDate();
+    for(var i=1; i<=dim; i++){
+      var d = new Date(year, month, i);
+      var ds = formatDate(d);
+      var count = records.filter(function(r){return r.date === ds}).length;
+      bars.push({date: ds, count: count, label: String(i)});
+      if(count > maxCount) maxCount = count;
+    }
   }
   
-  var daysLabel = ['一','二','三','四','五','六','日'];
+  if(bars.length === 0) return '';
+  
+  var title = tab==='day' ? '最近7天' : tab==='week' ? '本周活动' : '本月活动';
   var html = '<div class="stat-card">' +
-    '<div class="sc-title-wrap"><div class="sc-title-text">活动热力图</div></div>' +
+    '<div class="sc-title-wrap"><div class="sc-title-text">'+title+'</div></div>' +
     '<div class="sc-body" style="padding:12px 16px">' +
-    '<div style="display:flex;gap:4px;flex-direction:column">';
+    '<div style="display:flex;gap:4px;align-items:flex-end;height:60px;padding:4px 0;">';
   
-  // 表头：周数
-  html += '<div style="display:flex;gap:4px;align-items:center;margin-bottom:4px">' +
-    '<div style="width:20px;font-size:10px;color:var(--text4)"></div>';
-  weeks.forEach(function(week, wi){
-    html += '<div style="flex:1;text-align:center;font-size:10px;color:var(--text4)">W'+(wi+1)+'</div>';
+  bars.forEach(function(bar){
+    var pct = maxCount > 0 ? (bar.count / maxCount) * 100 : 0;
+    var alpha = bar.count > 0 ? 0.15 + (bar.count / maxCount) * 0.75 : 0;
+    var bg = bar.count > 0 ? 'rgba(48,209,88,'+alpha+')' : 'var(--card2)';
+    var txtColor = alpha > 0.5 ? '#000' : (bar.count > 0 ? 'var(--green)' : 'var(--text4)');
+    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0">' +
+      '<div style="font-size:9px;font-weight:600;color:'+txtColor+';white-space:nowrap;">'+bar.count+'</div>' +
+      '<div style="width:100%;height:'+Math.max(pct, 4)+'%;border-radius:4px;background:'+bg+';"></div>' +
+      '<div style="font-size:9px;color:var(--text4);white-space:nowrap;">'+bar.label+'</div>' +
+      '</div>';
   });
-  html += '</div>';
-  
-  // 每天一行
-  for(var d=0; d<7; d++){
-    html += '<div style="display:flex;gap:4px;align-items:center;margin-bottom:3px">' +
-      '<div style="width:20px;font-size:10px;color:var(--text4);text-align:center">'+daysLabel[d]+'</div>';
-    weeks.forEach(function(week){
-      var cell = week[d];
-      var bg = cell.count > 0 ? 'rgba(48,209,88,'+cell.alpha+')' : 'var(--card2)';
-      var color = cell.alpha > 0.5 ? '#000' : 'var(--text3)';
-      html += '<div style="flex:1;aspect-ratio:1;border-radius:3px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:'+color+'">'+cell.count+'</div>';
-    });
-    html += '</div>';
-  }
   
   html += '</div></div></div>';
   return html;
@@ -6314,6 +6327,9 @@ function renderCumulative(records, title, subtitle){
   }
 
   var html = '';
+
+  // 活动柱状图热力图（周/月视图）
+  html += renderHeatmap(records, subtitle);
 
   // 1. 按主体汇总（始终显示，放最前面，按显示名聚合去重）
   // V19.14: 每个动作项存储 details 数组用于点击展开
