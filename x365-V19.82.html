@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="x365">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>x365 V19.82</title>
+<title>x365 V19.83</title>
 <style>
 /* ===== Reset ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -956,13 +956,13 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
     <div class="cal-panel" id="calPanelCalendar" style="display:block">
       <div class="subject-filter" id="calSubjectFilter"></div>
       <div class="subject-filter" id="calActionFilter" style="display:none"></div>
+      <div id="calBackToday" onclick="backToCalendarToday()" style="display:none;margin:0 20px 6px;padding:6px 14px;border-radius:9999px;background:var(--green-bg);color:var(--green);font-size:13px;font-weight:600;text-align:center;cursor:pointer;transition:opacity .15s">回到今天</div>
       <div class="cal-month-nav">
         <div class="cal-nav-btn" onclick="prevCalendarMonth()">‹</div>
         <div id="calMonthLabel" class="cal-month-label"></div>
-        <div id="calBackToday" class="cal-nav-btn green" onclick="backToCalendarToday()" style="display:none;font-size:14px;width:auto;padding:0 10px;border-radius:9999px">今天</div>
         <div class="cal-nav-btn" onclick="nextCalendarMonth()">›</div>
       </div>
-      <div id="calFabAdd" class="fab-add" style="display:none" onclick="openManualAdd()">+</div>
+      <div id="calFabAdd" class="fab-add" style="display:none;bottom:calc(var(--nav-h) + var(--safe-b) + 70px)" onclick="openManualAdd()">+</div>
       <div class="cal-weekdays"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-day-detail" id="calDayDetail"></div>
@@ -1123,7 +1123,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
           <div class="settings-item-icon">ℹ️</div>
           <div class="settings-item-body">
             <div class="settings-item-name">版本</div>
-            <div class="settings-item-desc">V19.82</div>
+            <div class="settings-item-desc">V19.83</div>
           </div>
         </div>
         <div class="settings-item" onclick="showToast('x365：记录每一个微小行为，见证累积的力量 💪')">
@@ -3711,13 +3711,13 @@ function editPreview(){
     html += '<div style="flex:1">';
     html += '<div class="ms-label" style="margin-bottom:4px">日期</div>';
     html += '<div style="position:relative">';
-    html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+shortDateStr+'</div>';
+    html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+shortDateStr+'</div>';
     html += '<input type="date" id="editDate_'+idx+'" value="'+dateStr+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value.substring(5)">';
     html += '</div></div>';
     html += '<div style="flex:1">';
     html += '<div class="ms-label" style="margin-bottom:4px">时间</div>';
     html += '<div style="position:relative">';
-    html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+timeStr+'</div>';
+    html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+timeStr+'</div>';
     html += '<input type="time" id="editTime_'+idx+'" value="'+timeStr+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value">';
     html += '</div></div>';
     html += '</div>';
@@ -5169,6 +5169,9 @@ function saveEditAction(oldName){
   
   rebuildAliasMap();
   saveState();
+  // V19.83: close modal overlay before switching back to list
+  var overlay = document.getElementById('modalOverlay');
+  if(overlay) overlay.classList.remove('show');
   showMemoryTab(document.querySelector('.cm-tab[data-tab="actions"]'));
   showToast('已保存修改');
 }
@@ -5530,14 +5533,14 @@ function openQuickAddModal(name){
   // Quantity + Unit in one row
   html += '<div style="display:flex;gap:8px;margin-bottom:12px">';
   html += '<div style="flex:1"><div style="font-size:12px;color:var(--text4);margin-bottom:4px">数量</div>';
-  html += '<input type="number" id="quickQty" value="'+defaultQty+'" min="0.1" step="0.1" style="width:100%;padding:10px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:16px;outline:none;text-align:center;font-weight:600"></div>';
+  html += '<input type="number" id="quickQty" value="'+defaultQty+'" min="0.1" step="0.1" style="width:100%;padding:10px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:16px;outline:none;text-align:center;font-weight:600"></div>';
   html += '<div style="flex:1"><div style="font-size:12px;color:var(--text4);margin-bottom:4px">单位</div>';
-  html += '<input type="text" id="quickUnit" value="'+defaultUnit+'" style="width:100%;padding:10px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;text-align:center"></div>';
+  html += '<input type="text" id="quickUnit" value="'+defaultUnit+'" style="width:100%;padding:10px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;text-align:center"></div>';
   html += '</div>';
   // Notes
   html += '<div style="margin-bottom:16px">';
   html += '<div style="font-size:12px;color:var(--text4);margin-bottom:4px">备注</div>';
-  html += '<textarea id="quickNotes" placeholder="添加备注..." style="width:100%;min-height:50px;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)"></textarea>';
+  html += '<textarea id="quickNotes" placeholder="添加备注..." style="width:100%;min-height:50px;padding:8px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)"></textarea>';
   html += '</div>';
   html += '<button class="btn btn-primary" onclick="quickAddConfirm(\''+name+'\')" style="width:100%">确认记录</button>';
   
@@ -5803,7 +5806,7 @@ function renderTimeline(){
     var dateLabel;
     if(year === currentYear){
       // 今年：短日期 + 第X天（小号字）
-      dateLabel = shortDate(date) + '<span style="font-size:15px;color:var(--text4);font-weight:400;margin-left:4px">第' + getDayOfYear(date) + '天</span>';
+      dateLabel = shortDate(date) + '<span style="font-size:13px;color:var(--text4);font-weight:400;margin-left:4px">第' + getDayOfYear(date) + '天</span>';
     } else {
       // 往年：长日期（年-月-日），不标注天数
       dateLabel = year + '年' + parseInt(dateParts[1]) + '月' + parseInt(dateParts[2]) + '日';
@@ -7337,17 +7340,17 @@ function editRecordDate(recordId){
   
   // Action name
   html += '<div class="ms-label">动作名称</div>';
-  html += '<input type="text" id="editActionName" value="'+escapeHtml(a.standardName)+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px">';
+  html += '<input type="text" id="editActionName" value="'+escapeHtml(a.standardName)+'" style="width:100%;padding:8px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;margin-bottom:10px">';
   
   // Quantity + Unit
   html += '<div style="display:flex;gap:8px;margin-bottom:10px">';
   html += '<div style="flex:1">';
   html += '<div class="ms-label">数量</div>';
-  html += '<input type="number" id="editQuantity" value="'+a.quantity+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none">';
+  html += '<input type="number" id="editQuantity" value="'+a.quantity+'" style="width:100%;padding:8px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none">';
   html += '</div>';
   html += '<div style="flex:1">';
   html += '<div class="ms-label">单位</div>';
-  html += '<input type="text" id="editUnit" value="'+escapeHtml(a.unit)+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none">';
+  html += '<input type="text" id="editUnit" value="'+escapeHtml(a.unit)+'" style="width:100%;padding:8px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none">';
   html += '</div>';
   html += '</div>';
   
@@ -7359,7 +7362,7 @@ function editRecordDate(recordId){
     var active = c === a.category ? 'var(--green-bg)' : 'var(--card2)';
     var color = c === a.category ? 'var(--green)' : 'var(--text3)';
     var border = c === a.category ? 'var(--green-dim)' : 'transparent';
-    html += '<div class="edit-category-chip" data-cat="'+c+'" onclick="selectEditCategory(this)" style="padding:4px 10px;border-radius:9999px;font-size:12px;cursor:pointer;transition:all .15s;background:'+active+';color:'+color+';border:1.5px solid '+border+'">'+c+'</div>';
+    html += '<div class="edit-category-chip" data-cat="'+c+'" onclick="selectEditCategory(this)" style="padding:4px 10px;border-radius:15px;font-size:12px;cursor:pointer;transition:all .15s;background:'+active+';color:'+color+';border:1.5px solid '+border+'">'+c+'</div>';
   });
   html += '</div>';
   html += '<input type="hidden" id="editCategory" value="'+a.category+'">';
@@ -7377,19 +7380,19 @@ function editRecordDate(recordId){
   html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
   html += '<div style="position:relative">';
-  html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recShortDate+'</div>';
+  html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recShortDate+'</div>';
   html += '<input type="date" id="newRecordDate" value="'+recDate+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value.substring(5)">';
   html += '</div></div>';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
   html += '<div style="position:relative">';
-  html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recTime+'</div>';
+  html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recTime+'</div>';
   html += '<input type="time" id="newRecordTime" value="'+recTime+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value">';
   html += '</div></div>';
   html += '</div>';
   
   // Notes
   html += '<div class="ms-label">备注</div>';
-  html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
+  html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
   
   html += '<div class="ms-actions">';
   html += '<button class="btn" style="background:var(--red);color:#fff" onclick="deleteRecord(\''+recordId+'\');closeModal()">删除记录</button>';
@@ -7496,7 +7499,7 @@ function cloneRecord(id){
   cloned.id = Date.now() + '_' + Math.random().toString(36).substr(2,6);
   // V19.82: close edit modal first, then re-popup clone modal
   closeModal();
-  setTimeout(function(){ showCloneEditModal(cloned); }, 200);
+  setTimeout(function(){ showCloneEditModal(cloned); }, 50);
 }
 
 var CLONE_RECORD_DATA = null;
@@ -7564,19 +7567,19 @@ function showCloneEditModal(record){
   html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
   html += '<div style="position:relative">';
-  html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recShortDate+'</div>';
+  html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recShortDate+'</div>';
   html += '<input type="date" id="newRecordDate" value="'+recDate+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value.substring(5)">';
   html += '</div></div>';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
   html += '<div style="position:relative">';
-  html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recTime+'</div>';
+  html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+recTime+'</div>';
   html += '<input type="time" id="newRecordTime" value="'+recTime+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value">';
   html += '</div></div>';
   html += '</div>';
   
   // Notes
   html += '<div class="ms-label">备注</div>';
-  html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
+  html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:15px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
   
   // Store cloned record for save (avoid HTML attribute quote escaping issues)
   CLONE_RECORD_DATA = record;
@@ -7953,12 +7956,12 @@ function openManualAdd(){
   html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
   html += '<div style="position:relative">';
-  html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+shortDate+'</div>';
+  html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+shortDate+'</div>';
   html += '<input type="date" id="manualDate" value="'+todayStr+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value.substring(5)">';
   html += '</div></div>';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
   html += '<div style="position:relative">';
-  html += '<div style="padding:8px 12px;border-radius:9999px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+nowTime+'</div>';
+  html += '<div style="padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box">'+nowTime+'</div>';
   html += '<input type="time" id="manualTime" value="'+nowTime+'" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer" onchange="this.previousElementSibling.textContent=this.value">';
   html += '</div></div>';
   html += '</div>';
@@ -8914,6 +8917,9 @@ function backToCalendarToday(){
   var todayDate = new Date();
   calCurrentMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
   renderCalendar();
+  // V19.83: 返回今天后隐藏"回到今天"按钮
+  var backBtn = document.getElementById('calBackToday');
+  if(backBtn) backBtn.style.display = 'none';
 }
 
 function prevCalendarMonth(){
