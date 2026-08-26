@@ -7491,7 +7491,10 @@ function cloneRecord(id){
   showCloneEditModal(cloned);
 }
 
+var CLONE_RECORD_DATA = null;
+
 function showCloneEditModal(record){
+  CLONE_RECORD_DATA = record;
   var a = record.actions[0];
   var sub = getSubject(record.subject);
   var catColor = getCatColor(a.category);
@@ -7570,8 +7573,8 @@ function showCloneEditModal(record){
   html += '<div class="ms-label">备注</div>';
   html += '<textarea id="newRecordNotes" placeholder="添加备注..." style="width:100%;min-height:60px;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;resize:vertical;font-family:var(--font)">'+escapeHtml(record.notes||'')+'</textarea>';
   
-  // Store cloned record ID for save
-  html += '<input type="hidden" id="cloneRecordData" value="''+JSON.stringify(record).replace(/"/g,'\"')+'''">';
+  // Store cloned record for save (avoid HTML attribute quote escaping issues)
+  CLONE_RECORD_DATA = record;
   
   html += '<div class="ms-actions">';
   html += '<button class="btn" style="background:var(--card2);color:var(--text2)" onclick="closeModal()">取消</button>';
@@ -7582,8 +7585,8 @@ function showCloneEditModal(record){
 }
 
 function saveCloneRecord(){
-  var dataStr = document.getElementById('cloneRecordData').value;
-  var record = JSON.parse(dataStr);
+  var record = CLONE_RECORD_DATA;
+  if(!record) { showToast('复制数据丢失'); return; }
   var newDate = document.getElementById('newRecordDate').value;
   var newTimeVal = document.getElementById('newRecordTime') ? document.getElementById('newRecordTime').value : '';
   var newNotes = document.getElementById('newRecordNotes').value.trim();
