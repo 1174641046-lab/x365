@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="x365">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>x365 V19.77</title>
+<title>x365 V19.78</title>
 <style>
 /* ===== Reset ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -1123,7 +1123,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
           <div class="settings-item-icon">ℹ️</div>
           <div class="settings-item-body">
             <div class="settings-item-name">版本</div>
-            <div class="settings-item-desc">V19.77</div>
+            <div class="settings-item-desc">V19.78</div>
           </div>
         </div>
         <div class="settings-item" onclick="showToast('x365：记录每一个微小行为，见证累积的力量 💪')">
@@ -2699,6 +2699,23 @@ function loadState(){
       if(data.actionOrder) STATE.actionOrder = data.actionOrder;
       // 迁移旧版本数据
       migrateV1();
+      // V19.78: Rebuild actionSubjectMap from existing records (backward compatibility)
+      if(!STATE.actionSubjectMap || Object.keys(STATE.actionSubjectMap).length === 0){
+        STATE.actionSubjectMap = {};
+        STATE.records.forEach(function(record){
+          var recSubject = record.subject || 'user';
+          if(record.actions){
+            record.actions.forEach(function(a){
+              var aName = a.standardName || a.action;
+              if(aName && !STATE.actionSubjectMap[aName]){
+                STATE.actionSubjectMap[aName] = recSubject;
+              }
+            });
+          }
+        });
+        saveState();
+        console.log('V19.78: Rebuilt actionSubjectMap for ' + Object.keys(STATE.actionSubjectMap).length + ' actions');
+      }
     }else{
       migrateV1();
     }
@@ -3876,7 +3893,7 @@ function autoAddToLibraries(record){
   if(!record || !record.actions) return;
   var recSubject = record.subject || 'user';
   record.actions.forEach(function(a){
-    // V19.77: Record action-subject mapping for ALL actions (including built-in)
+    // V19.78: Record action-subject mapping for ALL actions (including built-in)
     var aName = a.standardName || a.action;
     if(aName && !STATE.actionSubjectMap[aName]){
       STATE.actionSubjectMap[aName] = recSubject;
@@ -4859,7 +4876,7 @@ function showMemoryTab(el){
         var catColor = getCatColor(a.cat);
         var isModified = !!STATE.customActions[name];
         var label = isModified ? '已改' : '内置';
-        // V19.77: Show subject binding if exists
+        // V19.78: Show subject binding if exists
         var subId = STATE.actionSubjectMap[name];
         var subInfo = '';
         if(subId){
