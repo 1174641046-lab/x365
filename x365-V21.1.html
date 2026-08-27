@@ -8835,7 +8835,7 @@ function getActionIcon(standardName, recordIcon, category){
   var catColor = getCatColor(category);
   var hasEmoji = /\p{Emoji}/u.test(icon);
   if(!hasEmoji && catColor){
-    return '<span style="color:'+catColor+';font-size:11px;font-weight:600;line-height:1">'+icon+'</span>';
+    return '<span style="color:'+catColor+';font-size:13px;font-weight:600;line-height:1">'+icon+'</span>';
   }
   return icon;
 }
