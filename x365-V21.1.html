@@ -8836,7 +8836,7 @@ function getActionIcon(standardName, recordIcon, category){
   var catColor = getCatColor(category);
   var hasEmoji = /\p{Emoji}/u.test(icon);
   if(!hasEmoji && catColor){
-    return '<span style="color:'+catColor+';font-size:15px;font-weight:600;line-height:1">'+icon+'</span>';
+    return '<span style="color:'+catColor+';font-size:18px;font-weight:600;line-height:1">'+icon+'</span>';
   }
   return icon;
 }
@@ -8848,7 +8848,7 @@ function getActionIconStyled(icon, category){
   var hasEmoji = /\p{Emoji}/u.test(icon);
   if(!hasEmoji){
     // V21.0: 文字emoji取消圆圈，直接显示为类别颜色
-    return '<span style="color:'+catColor+';font-size:15px;font-weight:600;line-height:1">'+icon+'</span>';
+    return '<span style="color:'+catColor+';font-size:9px;font-weight:600;line-height:1">'+icon+'</span>';
   }
   return icon;
 }
