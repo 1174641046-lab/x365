@@ -164,7 +164,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 }
 .text-input:focus{outline:none;background:var(--card3)}
 .text-input::placeholder{color:var(--text4)}
-.input-btns{display:flex;gap:10px;margin-top:10px}
+.input-btns{display:flex;gap:10px;margin-top:5px}
 /* Button - iOS capsule style */
 .btn{
   border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;
@@ -259,7 +259,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 6px 16px rgba(48,209,88,0.35);
   overflow:hidden;
-  border:3px solid #30D158;
+  border:1px solid #30D158;
 }
 .encourage .enc-avatar-wrap img{
   width:100%;height:100%;object-fit:cover;
@@ -817,7 +817,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .cal-day-dots{display:flex;gap:1px;flex-wrap:wrap;justify-content:center;margin-top:1px;max-width:100%;line-height:1}
 .cal-day-dot{font-size:8px;width:auto;height:auto;border-radius:0;background:none}
 .cal-day-count{font-size:9px;color:var(--text4);margin-top:1px}
-.cal-day-detail{padding:12px 20px;flex:1;overflow-y:auto;background:var(--bg)}
+.cal-day-detail{padding:12px 20px;flex:1;overflow-y:auto;background:var(--bg);min-height:50px;-webkit-overflow-scrolling:touch}
 .cal-day-detail-title{font-size:14px;font-weight:700;margin-bottom:8px}
 .cal-day-item{background:var(--card2);border-radius:var(--capsule);padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .cal-cat-color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block;margin-right:2px}
@@ -895,13 +895,13 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
     <!-- 今日概览 -->
     <div class="input-section">
-      <div class="atmosphere-wrap" id="atmosphereText" style="position:relative;height:150px">
+      <div class="atmosphere-wrap" id="atmosphereText" style="position:relative;height:145px">
         <!-- 氛围文字层（动态生成，pointer-events:none 不阻挡按钮） -->
         <!-- 按钮区域（绝对定位在底部，z-index最高） -->
         <!-- V19.15: manual add button removed -->
       </div>
 
-      <textarea class="text-input" id="textInput" style="margin-top:5px;min-height:28px;padding:8px 16px;border-radius:15px" placeholder="长按语音转文字，双击手动添加，单击直接输入" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+      <textarea class="text-input" id="textInput" style="margin-top:0;min-height:28px;padding:8px 16px;border-radius:15px" placeholder="长按语音转文字，双击手动添加，单击直接输入" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
       <div class="input-btns">
         <button class="btn btn-primary" id="parseBtn" onclick="parseInput()">识别</button>
         <button class="btn btn-ghost" onclick="clearInput()">清除</button>
@@ -5608,13 +5608,36 @@ function renderQuickActions(){
     }
   });
 
-  // 渲染
+  // 渲染 - V21.0: 动态记忆常用数量
   var html = '<div class="qa-grid">';
   quickActions.forEach(function(q){
     var icon = getActionIcon(q.name, null, q.category);
+    // 计算该动作最近使用的数量
+    var lastQty = '';
+    var qtyCounts = {};
+    for(var i=STATE.records.length-1; i>=0; i--){
+      var rec = STATE.records[i];
+      for(var j=0; j<rec.actions.length; j++){
+        var a = rec.actions[j];
+        if((a.standardName === q.name || a.action === q.name) && a.quantity){
+          var qKey = String(a.quantity);
+          qtyCounts[qKey] = (qtyCounts[qKey] || 0) + 1;
+        }
+      }
+    }
+    var maxCount = 0, defaultQty = '';
+    for(var qk in qtyCounts){
+      if(qtyCounts[qk] > maxCount){
+        maxCount = qtyCounts[qk];
+        defaultQty = qk;
+      }
+    }
+    if(defaultQty) lastQty = '<span style="font-size:11px;color:var(--text4);margin-top:2px">'+defaultQty+q.unit+'</span>';
+    
     html += '<div class="qa-item" onclick="openQuickAddModal(\''+q.name+'\')">'+
       '<span class="qa-icon">'+icon+'</span>'+
       '<span class="qa-name">'+q.name+'</span>'+
+      lastQty+
     '</div>';
   });
   html += '</div>';
@@ -7330,8 +7353,10 @@ function renderCalActionFilter(){
   STATE.records.forEach(function(r){
     if(r.subject !== STATE.calFilter) return;
     r.actions.forEach(function(a){
-      if(!actionNames[a.standardName]) actionNames[a.standardName] = {name: a.standardName, icon: getActionIcon(a.standardName, a.icon, a.category), count: 0};
-      actionNames[a.standardName].count++;
+      var actionKey = a.standardName || a.action;
+      if(!actionKey) return;
+      if(!actionNames[actionKey]) actionNames[actionKey] = {name: actionKey, icon: getActionIcon(actionKey, a.icon, a.category), count: 0};
+      actionNames[actionKey].count++;
     });
   });
 
@@ -8831,7 +8856,8 @@ function getActionIconStyled(icon, category){
   // 检查是否纯文字emoji（不含emoji Unicode字符）
   var hasEmoji = /\p{Emoji}/u.test(icon);
   if(!hasEmoji){
-    return '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:'+catColor+'22;color:'+catColor+';font-size:10px;font-weight:600;line-height:1">'+icon+'</span>';
+    // V21.0: 文字emoji取消圆圈，直接显示为类别颜色
+    return '<span style="color:'+catColor+';font-size:13px;font-weight:600;line-height:1">'+icon+'</span>';
   }
   return icon;
 }
@@ -8968,10 +8994,12 @@ function renderCalendar(){
   if(STATE.calFilter !== 'all'){
     records = records.filter(function(r){return r.subject === STATE.calFilter});
   }
-  // V19.14: 动作筛选（多选）
+  // V21.0: 动作筛选（多选）- 严格匹配standardName
   if(STATE.calActionFilter.length > 0){
     records = records.filter(function(r){
-      return r.actions.some(function(a){return STATE.calActionFilter.indexOf(a.standardName) !== -1});
+      return r.actions.some(function(a){
+        return STATE.calActionFilter.indexOf(a.standardName) !== -1;
+      });
     });
   }
 
@@ -9071,10 +9099,12 @@ function renderCalDayDetail(dateStr){
   if(STATE.calFilter !== 'all'){
     records = records.filter(function(r){return r.subject === STATE.calFilter});
   }
-  // V19.14: 动作筛选（多选）
+  // V21.0: 动作筛选（多选）- 严格匹配standardName
   if(STATE.calActionFilter.length > 0){
     records = records.filter(function(r){
-      return r.actions.some(function(a){return STATE.calActionFilter.indexOf(a.standardName) !== -1});
+      return r.actions.some(function(a){
+        return STATE.calActionFilter.indexOf(a.standardName) !== -1;
+      });
     });
   }
 
