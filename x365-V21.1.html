@@ -5869,7 +5869,8 @@ function renderSubjectDiaries(){
       var topActions = actionNames.sort(function(a,b){return todayActions[b].qty - todayActions[a].qty}).slice(0, 3);
       todaySummary = topActions.map(function(name){
         var d = todayActions[name];
-        return d.icon+' '+name+' '+d.qty+d.unit;
+        // V21.1 fix: 使用原始icon而非getActionIcon返回的HTML，避免escapeHtml转义显示代码
+        return (d.icon && d.icon.indexOf('<span') === -1 ? d.icon+' ' : '') + name+' '+d.qty+d.unit;
       }).join(' · ');
     }
 
