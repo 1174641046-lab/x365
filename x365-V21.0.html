@@ -740,7 +740,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .tl-actions-right{right:0;opacity:0;padding-right:12px}
 .tl-row-wrapper.show-left .tl-actions-left{opacity:1;pointer-events:auto}
 .tl-row-wrapper.show-right .tl-actions-right{opacity:1;pointer-events:auto}
-.tl-swiper{position:relative;background:var(--card2);width:100%;transition:transform .2s ease;will-change:transform;touch-action:pan-y;z-index:1}
+.tl-swiper{position:relative;background:var(--card2);width:100%;transition:transform .2s ease;will-change:transform;touch-action:pan-y;z-index:1;-webkit-tap-highlight-color:transparent}
 .tl-swiper.swiped-left{transform:translateX(-90px)}
 .tl-swiper.swiped-right{transform:translateX(90px)}
 .tl-btn{height:40px;border-radius:var(--capsule);display:flex;align-items:center;justify-content:center;gap:4px;padding:0 12px;color:#fff;font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.25);pointer-events:none}
@@ -5608,36 +5608,13 @@ function renderQuickActions(){
     }
   });
 
-  // 渲染 - V21.0: 动态记忆常用数量
+  // 渲染
   var html = '<div class="qa-grid">';
   quickActions.forEach(function(q){
     var icon = getActionIcon(q.name, null, q.category);
-    // 计算该动作最近使用的数量
-    var lastQty = '';
-    var qtyCounts = {};
-    for(var i=STATE.records.length-1; i>=0; i--){
-      var rec = STATE.records[i];
-      for(var j=0; j<rec.actions.length; j++){
-        var a = rec.actions[j];
-        if((a.standardName === q.name || a.action === q.name) && a.quantity){
-          var qKey = String(a.quantity);
-          qtyCounts[qKey] = (qtyCounts[qKey] || 0) + 1;
-        }
-      }
-    }
-    var maxCount = 0, defaultQty = '';
-    for(var qk in qtyCounts){
-      if(qtyCounts[qk] > maxCount){
-        maxCount = qtyCounts[qk];
-        defaultQty = qk;
-      }
-    }
-    if(defaultQty) lastQty = '<span style="font-size:11px;color:var(--text4);margin-top:2px">'+defaultQty+q.unit+'</span>';
-    
     html += '<div class="qa-item" onclick="openQuickAddModal(\''+q.name+'\')">'+
       '<span class="qa-icon">'+icon+'</span>'+
       '<span class="qa-name">'+q.name+'</span>'+
-      lastQty+
     '</div>';
   });
   html += '</div>';
@@ -8836,18 +8813,31 @@ function getCatIcon(cat){
 // 优先级：自定义动作 > 内置动作字典 > 记录自带icon > 分类默认icon
 function getActionIcon(standardName, recordIcon, category){
   if(!standardName) return recordIcon || getCatIcon(category) || '📝';
+  var icon = null;
   // 1. 自定义动作库
   if(STATE.customActions && STATE.customActions[standardName]){
-    return STATE.customActions[standardName].icon || getCatIcon(category) || '📝';
+    icon = STATE.customActions[standardName].icon || getCatIcon(category) || '📝';
   }
   // 2. 内置动作字典
-  if(ACTION_DICT && ACTION_DICT[standardName] && ACTION_DICT[standardName].icon){
-    return ACTION_DICT[standardName].icon;
+  else if(ACTION_DICT && ACTION_DICT[standardName] && ACTION_DICT[standardName].icon){
+    icon = ACTION_DICT[standardName].icon;
   }
   // 3. 记录自带icon
-  if(recordIcon) return recordIcon;
+  else if(recordIcon){
+    icon = recordIcon;
+  }
   // 4. 回退到分类默认
-  return getCatIcon(category) || '📝';
+  else{
+    icon = getCatIcon(category) || '📝';
+  }
+  
+  // V21.0: 纯文字emoji（非unicode emoji）显示为类别颜色，无圆圈，11px
+  var catColor = getCatColor(category);
+  var hasEmoji = /\p{Emoji}/u.test(icon);
+  if(!hasEmoji && catColor){
+    return '<span style="color:'+catColor+';font-size:11px;font-weight:600;line-height:1">'+icon+'</span>';
+  }
+  return icon;
 }
 // V19.95: 给文字emoji加分类色圆圈，缩小字号
 function getActionIconStyled(icon, category){
