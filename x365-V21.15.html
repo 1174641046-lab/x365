@@ -6938,7 +6938,7 @@ function renderWeightTrend(records){
         var x = i * stepX;
         var y = svgH - ((p.qty - yMin) / yRange) * svgH;
         var isLast = i === pts.length - 1;
-        curveHtml += '<circle cx="'+x+'" cy="'+y+'" r="'+ (isLast ? '4' : '2.5') +'" fill="'+sub.color+'" stroke="var(--card2)" stroke-width="1.5" style="cursor:pointer" onclick="showWeightTip('+x+','+y+','+p.qty.toFixed(1)+','\''+sub.color+'\','\''+svgId+'\')"/>';
+        curveHtml += '<circle cx="'+x+'" cy="'+y+'" r="'+ (isLast ? '4' : '2.5') +'" fill="'+sub.color+'" stroke="var(--card2)" stroke-width="1.5" style="cursor:pointer" onclick="showWeightTip('+x+','+y+','+p.qty.toFixed(1)+',\''+sub.color+'\',\''+svgId+'\')"/>';
       });
       
       curveHtml += '</svg></div>';
@@ -9072,6 +9072,52 @@ function closeImagePreview(){
   PREVIEW_IMAGE_LIST = [];
   PREVIEW_IMAGE_IDX = 0;
 }
+
+// V21.15: 打卡页面悬浮球可拖动
+(function initCalFabDrag(){
+  var isDragging = false, startX, startY, startLeft, startTop, fab;
+  function getFab(){ return document.getElementById('calFabAdd'); }
+  document.addEventListener('touchstart', function(e){
+    fab = getFab(); if(!fab) return;
+    if(e.target === fab || fab.contains(e.target)){
+      isDragging = true;
+      fab.classList.add('fab-dragging');
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      var rect = fab.getBoundingClientRect();
+      startLeft = rect.left;
+      startTop = rect.top;
+      e.preventDefault();
+    }
+  }, {passive:false});
+  document.addEventListener('touchmove', function(e){
+    if(!isDragging || !fab) return;
+    var dx = e.touches[0].clientX - startX;
+    var dy = e.touches[0].clientY - startY;
+    fab.style.left = (startLeft + dx) + 'px';
+    fab.style.top = (startTop + dy) + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+    e.preventDefault();
+  }, {passive:false});
+  document.addEventListener('touchend', function(e){
+    if(isDragging && fab){
+      isDragging = false;
+      fab.classList.remove('fab-dragging');
+      // 贴边吸附：自动贴向左右边
+      var rect = fab.getBoundingClientRect();
+      var vw = window.innerWidth;
+      if(rect.left + rect.width/2 < vw/2){
+        fab.style.left = '20px';
+        fab.style.right = 'auto';
+      } else {
+        fab.style.left = 'auto';
+        fab.style.right = '20px';
+      }
+    }
+    fab = null;
+  });
+})();
 
 function getCatColor(cat){
   if(STATE.categoryColors && STATE.categoryColors[cat]) return STATE.categoryColors[cat];
