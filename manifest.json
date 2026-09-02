@@ -1,11 +1,11 @@
 {
-  "name": "x365 - 生活记录",
-  "short_name": "x365",
+  "name": "逐日记",
+  "short_name": "逐日记",
   "description": "再小的坚持也有力量",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#30D158",
+  "background_color": "#FEFDF0",
+  "theme_color": "#3a8252",
   "orientation": "portrait",
   "icons": [
     {
