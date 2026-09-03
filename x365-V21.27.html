@@ -1056,7 +1056,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 <div id="app">
 
   <!-- ===== Record Page ===== -->
-  <div class="page record-page" id="page-record">
+  <div class="page active record-page" id="page-record">
     <div class="nav-header">
       <div class="nav-header-left" style="display:flex;align-items:center;gap:10px">
         <div>
@@ -1204,7 +1204,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
 
   <!-- ===== Calendar Page ===== -->
-  <div class="page active calendar-page" id="page-calendar">
+  <div class="page calendar-page" id="page-calendar">
     <div class="nav-header">
     <div class="nav-header-left">
         <h1>打卡</h1>
@@ -1430,7 +1430,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
   <!-- ===== Bottom Nav ===== -->
   <div class="bottom-nav">
-    <div class="nav-item" data-page="record" onclick="switchPage('record',this)">
+    <div class="nav-item active" data-page="record" onclick="switchPage('record',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
       <span>记录</span>
     </div>
@@ -1442,7 +1442,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1" fill="currentColor" stroke="none"/><rect x="12" y="8" width="3" height="10" rx="1" fill="currentColor" stroke="none"/><rect x="17" y="5" width="3" height="13" rx="1" fill="currentColor" stroke="none"/></svg>
       <span>统计</span>
     </div>
-    <div class="nav-item active" data-page="calendar" onclick="switchPage('calendar',this)">
+    <div class="nav-item" data-page="calendar" onclick="switchPage('calendar',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 2v3"/><path d="M16 2v3"/><path d="M8 4h8" stroke-dasharray="1.5 1.5"/><polyline points="9 13 11.5 16 15.5 11"/></svg>
       <span>打卡</span>
     </div>
