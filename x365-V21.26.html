@@ -6830,9 +6830,9 @@ function deleteSelectedRecords(){
 
 // ===== 渲染 - 统计 =====
 function toggleStatViewMode(){
-  STATE.statViewMode = STATE.statViewMode === 'subject' ? 'action' : 'subject';
+  STATE.statViewMode = STATE.statViewMode === 'subject' ? 'category' : 'subject';
   var btn = document.querySelector('.stat-view-toggle');
-  if(btn) btn.textContent = STATE.statViewMode === 'subject' ? '按动作查看⇄' : '按类别查看⇄';
+  if(btn) btn.textContent = STATE.statViewMode === 'subject' ? '按类别查看⇄' : '按主体查看⇄';
   renderStats();
 }
 
@@ -6989,20 +6989,20 @@ function renderDailyDetail(records, periodLabel){
 
   var html = '';
 
-  // V21.25: 按动作分组统计
-  var dayActCum = {};
-  if(STATE.statViewMode === 'action'){
+  // V21.25: 按类别分组统计
+  var dayCatCum = {};
+  if(STATE.statViewMode === 'category'){
     records.forEach(function(r){
       r.actions.forEach(function(a){
         if(a.standardName === '称体重' || a.standardName === '称重') return;
-        var sub = getSubject(a.subject) || {emoji:'🙋',color:'#30D158',name:'我'};
+        var cat = a.category || '其他';
+        if(!dayCatCum[cat]) dayCatCum[cat] = {count:0, icon:getCatIcon(cat), color:getCatColor(cat), actions:{}};
+        dayCatCum[cat].count++;
         var actKey = a.standardName;
-        if(!dayActCum[actKey]) dayActCum[actKey] = {qty:0, count:0, icon:getActionIcon(a.standardName, a.icon, a.category), unit:a.unit, name:a.standardName, category:a.category, subjects:{}};
-        dayActCum[actKey].qty += a.quantity;
-        dayActCum[actKey].count++;
-        var actSubKey = sub.name;
-        if(!dayActCum[actKey].subjects[actSubKey]) dayActCum[actKey].subjects[actSubKey] = {count:0, sub:sub};
-        dayActCum[actKey].subjects[actSubKey].count++;
+        if(!dayCatCum[cat].actions[actKey]) dayCatCum[cat].actions[actKey] = {qty:0, count:0, icon:getActionIcon(a.standardName, a.icon, a.category), unit:a.unit, name:a.standardName, category:a.category, details:[]};
+        dayCatCum[cat].actions[actKey].qty += a.quantity;
+        dayCatCum[cat].actions[actKey].count++;
+        dayCatCum[cat].actions[actKey].details.push({date: r.date, time: r.time, qty: a.quantity, notes: r.notes || ''});
       });
     });
   }
@@ -7021,7 +7021,7 @@ function renderDailyDetail(records, periodLabel){
   html += '<div class="sc-title-wrap" onclick="toggleCard(this.querySelector(\'.sc-expand-btn\'),\'daySub\')">' +
     '<div class="sc-title-text">日复一日的力量 <span class="sc-sub">'+(periodLabel||'当天')+' \u00b7 '+records.length+'条</span></div>' +
     '<div style="display:flex;align-items:center;gap:4px">' +
-      '<div class="stat-view-toggle" onclick="event.stopPropagation();toggleStatViewMode()" style="display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:9999px;background:var(--card2);font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0">按动作查看⇄</div>' +
+      '<div class="stat-view-toggle" onclick="event.stopPropagation();toggleStatViewMode()" style="display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:9999px;background:var(--card2);font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0">按类别查看⇄</div>' +
       '<div class="sc-expand-btn">∨</div>' +
     '</div>' +
   '</div>';
@@ -7066,26 +7066,39 @@ function renderDailyDetail(records, periodLabel){
     (STATE.customSubjects.map(function(s){ return '<div class="sf-chip '+(STATE.dayStatFilter===s.id?'active':'')+'" onclick="setDayStatFilter(\''+s.id+'\')" style="cursor:pointer"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+escapeHtml(s.name)+'</span></div>'; }).join('')) +
   '</div>';
 
-  if(STATE.statViewMode === 'action'){
-    // V21.26: 按动作查看 (daily)
-    Object.keys(dayActCum).sort(function(a,b){return dayActCum[b].count - dayActCum[a].count}).forEach(function(actName, idx){
-      var d = dayActCum[actName];
-      var actId = 'dayAct_' + idx + '_' + actName.replace(/[^a-zA-Z0-9]/g,'_');
-      var catColor = getCatColor(d.category);
+  if(STATE.statViewMode === 'category'){
+    // V21.26: 按类别查看 (daily)
+    Object.keys(dayCatCum).sort(function(a,b){return dayCatCum[b].count - dayCatCum[a].count}).forEach(function(catName, idx){
+      var d = dayCatCum[catName];
+      var catId = 'dayCat_' + idx + '_' + catName.replace(/[^a-zA-Z0-9]/g,'_');
+      var catColor = d.color;
       html += '<div class="cum-row">' +
         '<div class="cr-icon" style="background:'+catColor+'22">'+d.icon+'</div>' +
-        '<div class="cr-name">'+d.name+'<span style="font-size:11px;color:var(--text4);margin-left:4px">'+d.count+'次 \u00b7 '+Object.keys(d.subjects).length+'主体</span></div>' +
+        '<div class="cr-name">'+catName+'<span style="font-size:11px;color:var(--text4);margin-left:4px">'+d.count+'次 \u00b7 '+Object.keys(d.actions).length+'动作</span></div>' +
         '<div class="cr-qty num">'+d.count+'<span class="u">次</span></div>' +
-        '<div class="sc-expand-btn" onclick="event.stopPropagation();toggleSubject(this,\''+actId+'\')" style="margin-left:4px">∨</div>' +
+        '<div class="sc-expand-btn" onclick="event.stopPropagation();toggleSubject(this,\''+catId+'\')" style="margin-left:4px">∨</div>' +
       '</div>';
-      html += '<div class="sc-sub-body" id="subBody_'+actId+'">';
-      Object.keys(d.subjects).forEach(function(subName){
-        var sd = d.subjects[subName];
-        html += '<div class="cum-row" style="padding-left:40px">' +
-          '<div class="cr-icon" style="background:'+sd.sub.color+'22;width:24px;height:24px;font-size:13px;margin-top:1px;border-radius:6px">'+sd.sub.emoji+'</div>' +
-          '<div class="cr-name" style="color:var(--text3);margin-top:1px">'+sd.sub.name+'</div>' +
-          '<div class="cr-qty num" style="font-size:14px">'+sd.count+'<span class="u" style="font-size:10px">次</span></div>' +
+      html += '<div class="sc-sub-body" id="subBody_'+catId+'">';
+      Object.keys(d.actions).sort(function(a,b){return d.actions[b].count - d.actions[a].count}).forEach(function(actName){
+        var act = d.actions[actName];
+        var actDetailId = catId + '_act_' + actName.replace(/[^a-zA-Z0-9]/g,'_');
+        html += '<div class="cum-row" style="padding-left:40px;cursor:pointer" onclick="event.stopPropagation();toggleCumDetail(this,\''+actDetailId+'\')">' +
+          '<div class="cr-icon" style="background:var(--card2);width:24px;height:24px;color:var(--text3);margin-top:1px;border-radius:6px">'+act.icon+'</div>' +
+          '<div class="cr-name" style="color:var(--text3);margin-top:1px">'+act.name+'<span style="font-size:10px;color:var(--text4);margin-left:4px">'+act.count+'次</span></div>' +
+          '<div class="cr-qty num" style="font-size:14px">'+act.qty+'<span class="u" style="font-size:10px">'+act.unit+'</span></div>' +
+          '<div class="sc-expand-btn" style="margin-left:2px;flex-shrink:0;color:var(--text4);font-size:12px">∨</div>' +
         '</div>';
+        var actDetailHtml = '<div class="sc-sub-body collapsed" id="'+actDetailId+'" style="max-height:0;overflow:hidden;transition:max-height .2s">';
+        act.details.sort(function(a,b){return b.date.localeCompare(a.date) || (b.time||'').localeCompare(a.time||'')}).forEach(function(det){
+          var noteStr = det.notes ? escapeHtml(det.notes) : '';
+          actDetailHtml += '<div class="rd-row rd-stat" style="padding:6px 12px 6px 56px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)">' +
+            '<span style="color:var(--text4);min-width:60px">'+det.date.substring(5)+' '+det.time.substring(0,5)+'</span>' +
+            '<span style="flex:1">'+noteStr+'</span>' +
+            '<span style="color:var(--green);font-weight:600">'+det.qty+'<span style="font-size:10px;color:var(--text4)">'+act.unit+'</span></span>' +
+          '</div>';
+        });
+        actDetailHtml += '</div>';
+        html += actDetailHtml;
       });
       html += '</div>';
     });
@@ -7309,7 +7322,7 @@ function renderCumulative(records, title, subtitle){
   html += '<div class="sc-title-wrap" onclick="toggleCard(this.querySelector(\'.sc-expand-btn\'),\'cumSub\')">' +
     '<div class="sc-title-text">日复一日的力量 <span class="sc-sub">'+subtitle+' · '+records.length+'条</span></div>' +
     '<div style="display:flex;align-items:center;gap:4px">' +
-      '<div class="stat-view-toggle" onclick="event.stopPropagation();toggleStatViewMode()" style="display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:9999px;background:var(--card2);font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0">按动作查看⇄</div>' +
+      '<div class="stat-view-toggle" onclick="event.stopPropagation();toggleStatViewMode()" style="display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:9999px;background:var(--card2);font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0">按类别查看⇄</div>' +
       '<div class="sc-expand-btn">∨</div>' +
     '</div>' +
   '</div>';
@@ -7354,44 +7367,57 @@ function renderCumulative(records, title, subtitle){
     (STATE.customSubjects.map(function(s){ return '<div class="sf-chip '+(STATE.dayStatFilter===s.id?'active':'')+'" onclick="setDayStatFilter(\''+s.id+'\')" style="cursor:pointer"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+escapeHtml(s.name)+'</span></div>'; }).join('')) +
   '</div>';
 
-  // V21.26: 按动作分组统计
-  var actCum = {};
-  if(STATE.statViewMode === 'action'){
+  // V21.26: 按类别分组统计
+  var catCum = {};
+  if(STATE.statViewMode === 'category'){
     records.forEach(function(r){
       r.actions.forEach(function(a){
         if(a.standardName === '称体重' || a.standardName === '称重') return;
-        var sub = getSubject(a.subject) || {emoji:'🙋',color:'#30D158',name:'我'};
+        var cat = a.category || '其他';
+        if(!catCum[cat]) catCum[cat] = {count:0, icon:getCatIcon(cat), color:getCatColor(cat), actions:{}};
+        catCum[cat].count++;
         var actKey = a.standardName;
-        if(!actCum[actKey]) actCum[actKey] = {qty:0, count:0, icon:getActionIcon(a.standardName, a.icon, a.category), unit:a.unit, name:a.standardName, category:a.category, subjects:{}};
-        actCum[actKey].qty += a.quantity;
-        actCum[actKey].count++;
-        var actSubKey = sub.name;
-        if(!actCum[actKey].subjects[actSubKey]) actCum[actKey].subjects[actSubKey] = {count:0, sub:sub};
-        actCum[actKey].subjects[actSubKey].count++;
+        if(!catCum[cat].actions[actKey]) catCum[cat].actions[actKey] = {qty:0, count:0, icon:getActionIcon(a.standardName, a.icon, a.category), unit:a.unit, name:a.standardName, category:a.category, details:[]};
+        catCum[cat].actions[actKey].qty += a.quantity;
+        catCum[cat].actions[actKey].count++;
+        catCum[cat].actions[actKey].details.push({date: r.date, time: r.time, qty: a.quantity, notes: r.notes || ''});
       });
     });
   }
 
-  if(STATE.statViewMode === 'action'){
-    // V21.26: 按动作查看
-    Object.keys(actCum).sort(function(a,b){return actCum[b].count - actCum[a].count}).forEach(function(actName, idx){
-      var d = actCum[actName];
-      var actId = 'cumAct_' + idx + '_' + actName.replace(/[^a-zA-Z0-9]/g,'_');
-      var catColor = getCatColor(d.category);
+  if(STATE.statViewMode === 'category'){
+    // V21.26: 按类别查看
+    Object.keys(catCum).sort(function(a,b){return catCum[b].count - catCum[a].count}).forEach(function(catName, idx){
+      var d = catCum[catName];
+      var catId = 'cumCat_' + idx + '_' + catName.replace(/[^a-zA-Z0-9]/g,'_');
+      var catColor = d.color;
       html += '<div class="cum-row">' +
         '<div class="cr-icon" style="background:'+catColor+'22">'+d.icon+'</div>' +
-        '<div class="cr-name">'+d.name+'<span style="font-size:11px;color:var(--text4);margin-left:4px">'+d.count+'次 · '+Object.keys(d.subjects).length+'主体</span></div>' +
+        '<div class="cr-name">'+catName+'<span style="font-size:11px;color:var(--text4);margin-left:4px">'+d.count+'次 · '+Object.keys(d.actions).length+'动作</span></div>' +
         '<div class="cr-qty num">'+d.count+'<span class="u">次</span></div>' +
-        '<div class="sc-expand-btn" onclick="event.stopPropagation();toggleSubject(this,\''+actId+'\')" style="margin-left:4px">∨</div>' +
+        '<div class="sc-expand-btn" onclick="event.stopPropagation();toggleSubject(this,\''+catId+'\')" style="margin-left:4px">∨</div>' +
       '</div>';
-      html += '<div class="sc-sub-body" id="subBody_'+actId+'">';
-      Object.keys(d.subjects).forEach(function(subName){
-        var sd = d.subjects[subName];
-        html += '<div class="cum-row" style="padding-left:40px">' +
-          '<div class="cr-icon" style="background:'+sd.sub.color+'22;width:24px;height:24px;font-size:13px;margin-top:1px;border-radius:6px">'+sd.sub.emoji+'</div>' +
-          '<div class="cr-name" style="color:var(--text3);margin-top:1px">'+sd.sub.name+'</div>' +
-          '<div class="cr-qty num" style="font-size:14px">'+sd.count+'<span class="u" style="font-size:10px">次</span></div>' +
+      html += '<div class="sc-sub-body" id="subBody_'+catId+'">';
+      Object.keys(d.actions).sort(function(a,b){return d.actions[b].count - d.actions[a].count}).forEach(function(actName){
+        var act = d.actions[actName];
+        var actDetailId = catId + '_act_' + actName.replace(/[^a-zA-Z0-9]/g,'_');
+        html += '<div class="cum-row" style="padding-left:40px;cursor:pointer" onclick="event.stopPropagation();toggleCumDetail(this,\''+actDetailId+'\')">' +
+          '<div class="cr-icon" style="background:var(--card2);width:24px;height:24px;color:var(--text3);margin-top:1px;border-radius:6px">'+act.icon+'</div>' +
+          '<div class="cr-name" style="color:var(--text3);margin-top:1px">'+act.name+'<span style="font-size:10px;color:var(--text4);margin-left:4px">'+act.count+'次</span></div>' +
+          '<div class="cr-qty num" style="font-size:14px">'+act.qty+'<span class="u" style="font-size:10px">'+act.unit+'</span></div>' +
+          '<div class="sc-expand-btn" style="margin-left:2px;flex-shrink:0;color:var(--text4);font-size:12px">∨</div>' +
         '</div>';
+        var actDetailHtml = '<div class="sc-sub-body collapsed" id="'+actDetailId+'" style="max-height:0;overflow:hidden;transition:max-height .2s">';
+        act.details.sort(function(a,b){return b.date.localeCompare(a.date) || (b.time||'').localeCompare(a.time||'')}).forEach(function(det){
+          var noteStr = det.notes ? escapeHtml(det.notes) : '';
+          actDetailHtml += '<div class="rd-row rd-stat" style="padding:6px 12px 6px 56px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3)">' +
+            '<span style="color:var(--text4);min-width:60px">'+det.date.substring(5)+' '+det.time.substring(0,5)+'</span>' +
+            '<span style="flex:1">'+noteStr+'</span>' +
+            '<span style="color:var(--green);font-weight:600">'+det.qty+'<span style="font-size:10px;color:var(--text4)">'+act.unit+'</span></span>' +
+          '</div>';
+        });
+        actDetailHtml += '</div>';
+        html += actDetailHtml;
       });
       html += '</div>';
     });
