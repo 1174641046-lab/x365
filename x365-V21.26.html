@@ -1162,13 +1162,10 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
   <!-- ===== Stats Page ===== -->
   <div class="page stats-page" id="page-stats">
     <div class="nav-header">
-      <div class="nav-header-left">
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <h1>日复一日的力量</h1>
-          <div class="stat-view-toggle" onclick="toggleStatViewMode()" style="display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:9999px;background:var(--card2);font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0">按动作查看⇄</div>
+        <div class="nav-header-left">
+          <h1>统计</h1>
+          <div class="sub">看见微小行为的巨大力量</div>
         </div>
-        <div class="sub">看见微小行为的巨大力量</div>
-      </div>
       <div class="header-actions">
         <div class="header-btn" onclick="toggleMemoryMenu(event)" title="管理记忆库">⋯</div>
       <div class="memory-menu" id="memoryMenu" style="display:none;position:absolute;top:44px;right:0;background:var(--card2);border-radius:15px;padding:6px 0;min-width:140px;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:60">
@@ -3058,6 +3055,7 @@ var STATE = {
   stActionFilter: 'all',
   calFilter: 'all',
   calActionFilter: [],
+  dayStatFilter: 'all',
   _stats: {},
   customSubjects: [],
   customActions: {},
@@ -6838,6 +6836,11 @@ function toggleStatViewMode(){
   renderStats();
 }
 
+function setDayStatFilter(subjectId){
+  STATE.dayStatFilter = subjectId;
+  renderStats();
+}
+
 function renderStats(){
   var records = STATE.records;
   if(STATE.stFilter !== 'all'){
@@ -6928,6 +6931,14 @@ function renderDailyDetail(records, periodLabel){
     return '<div class="empty" style="padding:30px 20px"><div class="emoji">📊</div><div class="text">'+(periodLabel||'当天')+'暂无记录</div></div>';
   }
 
+  // V21.25: 按主体筛选过滤
+  if(STATE.dayStatFilter !== 'all'){
+    records = records.filter(function(r){return r.subject === STATE.dayStatFilter});
+    if(records.length === 0){
+      return '<div class="empty" style="padding:30px 20px"><div class="emoji">📊</div><div class="text">'+(periodLabel||'当天')+'该主体暂无记录</div></div>';
+    }
+  }
+
   // 累计当天各动作（排除体重相关）
   var cumMap = {}; // key: standardName, val: {qty, icon, unit, category, records[]}
   records.forEach(function(r){
@@ -6977,49 +6988,8 @@ function renderDailyDetail(records, periodLabel){
   });
 
   var html = '';
-  // V21.26: 饼图 - 主体占比
-  var dayPieTotal = 0;
-  var dayPieData = [];
-  Object.keys(subCum).forEach(function(sname){
-    var d = subCum[sname];
-    dayPieTotal += d.count;
-    dayPieData.push({name: sname, count: d.count, color: d.sub.color, emoji: d.sub.emoji});
-  });
-  if(dayPieData.length > 0 && dayPieTotal > 0){
-    var dayPieGradient = 'conic-gradient(';
-    var dayCumPct = 0;
-    dayPieData.forEach(function(sd, i){
-      var pct = (sd.count / dayPieTotal) * 100;
-      dayPieGradient += sd.color + ' ' + dayCumPct.toFixed(2) + '% ' + (dayCumPct + pct).toFixed(2) + '%';
-      dayCumPct += pct;
-      if(i < dayPieData.length - 1) dayPieGradient += ', ';
-    });
-    dayPieGradient += ')';
-    html += '<div class="stat-card" style="text-align:center">' +
-      '<div class="sc-title-wrap"><div class="sc-title-text">主体占比</div></div>' +
-      '<div class="sc-body" style="padding:12px 16px">' +
-        '<div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">' +
-          '<div style="width:100px;height:100px;border-radius:50%;background:' + dayPieGradient + ';position:relative;flex-shrink:0">' +
-            '<div style="position:absolute;inset:22%;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center">' +
-              '<span style="font-size:13px;font-weight:700;color:var(--text)">' + dayPieTotal + '次</span>' +
-            '</div>' +
-          '</div>' +
-          '<div style="display:flex;flex-direction:column;gap:6px;text-align:left">' +
-            dayPieData.map(function(sd){
-              var pct = ((sd.count / dayPieTotal) * 100).toFixed(1);
-              return '<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)">' +
-                '<div style="width:10px;height:10px;border-radius:50%;background:' + sd.color + ';flex-shrink:0"></div>' +
-                '<span>' + sd.emoji + ' ' + sd.name + '</span>' +
-                '<span style="color:var(--text4);font-size:11px">' + sd.count + '次 ' + pct + '%</span>' +
-              '</div>';
-            }).join('') +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  }
 
-  // V21.26: 按动作分组统计 (daily)
+  // V21.25: 按动作分组统计
   var dayActCum = {};
   if(STATE.statViewMode === 'action'){
     records.forEach(function(r){
@@ -7037,9 +7007,65 @@ function renderDailyDetail(records, periodLabel){
     });
   }
 
-  html = '<div class="stat-card">' +
-      '<div class="sc-title-wrap" onclick="toggleCard(this.querySelector(\'.sc-expand-btn\'),\'daySub\')"><div class="sc-title-text">日复一日的力量 <span class="sc-sub">'+(periodLabel||'当天')+' \u00b7 '+records.length+'条</span></div><div class="sc-expand-btn">∨</div></div>' +
-    '<div class="sc-body" id="cardBody_daySub">';
+  // V21.26b: 合并为一个卡片 - 主体占比饼图 + 日复一日的力量 + 胶囊筛选器
+  var dayPieTotal = 0;
+  var dayPieData = [];
+  Object.keys(subCum).forEach(function(sname){
+    var d = subCum[sname];
+    dayPieTotal += d.count;
+    dayPieData.push({name: sname, count: d.count, color: d.sub.color, emoji: d.sub.emoji});
+  });
+
+  html += '<div class="stat-card">';
+  // 卡片标题：日复一日的力量 + 右上角胶囊筛选器
+  html += '<div class="sc-title-wrap" onclick="toggleCard(this.querySelector(\'.sc-expand-btn\'),\'daySub\')">' +
+    '<div class="sc-title-text">日复一日的力量 <span class="sc-sub">'+(periodLabel||'当天')+' \u00b7 '+records.length+'条</span></div>' +
+    '<div style="display:flex;align-items:center;gap:4px">' +
+      '<div class="stat-view-toggle" onclick="event.stopPropagation();toggleStatViewMode()" style="display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:9999px;background:var(--card2);font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0">按动作查看⇄</div>' +
+      '<div class="sc-expand-btn">∨</div>' +
+    '</div>' +
+  '</div>';
+  html += '<div class="sc-body" id="cardBody_daySub">';
+
+  // 饼图（如果有数据）
+  if(dayPieData.length > 0 && dayPieTotal > 0){
+    var dayPieGradient = 'conic-gradient(';
+    var dayCumPct = 0;
+    dayPieData.forEach(function(sd, i){
+      var pct = (sd.count / dayPieTotal) * 100;
+      dayPieGradient += sd.color + ' ' + dayCumPct.toFixed(2) + '% ' + (dayCumPct + pct).toFixed(2) + '%';
+      dayCumPct += pct;
+      if(i < dayPieData.length - 1) dayPieGradient += ', ';
+    });
+    dayPieGradient += ')';
+    html += '<div style="text-align:center;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">' +
+        '<div style="width:100px;height:100px;border-radius:50%;background:' + dayPieGradient + ';position:relative;flex-shrink:0">' +
+          '<div style="position:absolute;inset:22%;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center">' +
+            '<span style="font-size:13px;font-weight:700;color:var(--text)">' + dayPieTotal + '次</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;text-align:left">' +
+          dayPieData.map(function(sd){
+            var pct = ((sd.count / dayPieTotal) * 100).toFixed(1);
+            return '<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)">' +
+              '<div style="width:10px;height:10px;border-radius:50%;background:' + sd.color + ';flex-shrink:0"></div>' +
+              '<span>' + sd.emoji + ' ' + sd.name + '</span>' +
+              '<span style="color:var(--text4);font-size:11px">' + sd.count + '次 ' + pct + '%</span>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // 饼图下方主体选择器
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">' +
+    '<div class="sf-chip sf-all ' + (STATE.dayStatFilter==='all'?'active':'') + '" onclick="setDayStatFilter(\'all\')" style="cursor:pointer"><span class="sf-name">全部</span></div>' +
+    (STATE.subjects.map(function(s){ return '<div class="sf-chip '+(STATE.dayStatFilter===s.id?'active':'')+'" onclick="setDayStatFilter(\''+s.id+'\')" style="cursor:pointer"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+s.name+'</span></div>'; }).join('')) +
+    (STATE.customSubjects.map(function(s){ return '<div class="sf-chip '+(STATE.dayStatFilter===s.id?'active':'')+'" onclick="setDayStatFilter(\''+s.id+'\')" style="cursor:pointer"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+escapeHtml(s.name)+'</span></div>'; }).join('')) +
+  '</div>';
+
   if(STATE.statViewMode === 'action'){
     // V21.26: 按动作查看 (daily)
     Object.keys(dayActCum).sort(function(a,b){return dayActCum[b].count - dayActCum[a].count}).forEach(function(actName, idx){
@@ -7239,6 +7265,14 @@ function renderCumulative(records, title, subtitle){
     return '<div class="empty" style="padding:30px 20px"><div class="emoji">📊</div><div class="text">'+subtitle+'暂无数据</div></div>';
   }
 
+  // V21.25: 按主体筛选过滤
+  if(STATE.dayStatFilter !== 'all'){
+    records = records.filter(function(r){return r.subject === STATE.dayStatFilter});
+    if(records.length === 0){
+      return '<div class="empty" style="padding:30px 20px"><div class="emoji">📊</div><div class="text">'+subtitle+'该主体暂无数据</div></div>';
+    }
+  }
+
   var html = '';
 
   // 1. 按主体汇总（始终显示，放最前面，按显示名聚合去重）
@@ -7261,7 +7295,7 @@ function renderCumulative(records, title, subtitle){
     });
   });
 
-  // V21.26: 饼图 - 主体占比
+  // V21.26b: 合并为一个卡片 - 主体占比饼图 + 日复一日的力量 + 胶囊筛选器
   var pieTotal = 0;
   var pieData = [];
   Object.keys(subCum).forEach(function(sname){
@@ -7269,6 +7303,19 @@ function renderCumulative(records, title, subtitle){
     pieTotal += d.count;
     pieData.push({name: sname, count: d.count, color: d.sub.color, emoji: d.sub.emoji});
   });
+
+  // V21.26b: 合并为一个卡片 - 饼图 + 日复一日的力量 + 胶囊筛选器
+  html += '<div class="stat-card">';
+  html += '<div class="sc-title-wrap" onclick="toggleCard(this.querySelector(\'.sc-expand-btn\'),\'cumSub\')">' +
+    '<div class="sc-title-text">日复一日的力量 <span class="sc-sub">'+subtitle+' · '+records.length+'条</span></div>' +
+    '<div style="display:flex;align-items:center;gap:4px">' +
+      '<div class="stat-view-toggle" onclick="event.stopPropagation();toggleStatViewMode()" style="display:inline-flex;align-items:center;gap:2px;padding:4px 10px;border-radius:9999px;background:var(--card2);font-size:11px;font-weight:500;color:var(--text3);cursor:pointer;white-space:nowrap;flex-shrink:0">按动作查看⇄</div>' +
+      '<div class="sc-expand-btn">∨</div>' +
+    '</div>' +
+  '</div>';
+  html += '<div class="sc-body" id="cardBody_cumSub">';
+
+  // 饼图（如果有数据）
   if(pieData.length > 0 && pieTotal > 0){
     var pieGradient = 'conic-gradient(';
     var cumPct = 0;
@@ -7279,29 +7326,33 @@ function renderCumulative(records, title, subtitle){
       if(i < pieData.length - 1) pieGradient += ', ';
     });
     pieGradient += ')';
-    html += '<div class="stat-card" style="text-align:center">' +
-      '<div class="sc-title-wrap"><div class="sc-title-text">主体占比</div></div>' +
-      '<div class="sc-body" style="padding:12px 16px">' +
-        '<div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">' +
-          '<div style="width:100px;height:100px;border-radius:50%;background:' + pieGradient + ';position:relative;flex-shrink:0">' +
-            '<div style="position:absolute;inset:22%;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center">' +
-              '<span style="font-size:13px;font-weight:700;color:var(--text)">' + pieTotal + '次</span>' +
-            '</div>' +
+    html += '<div style="text-align:center;margin-bottom:12px">' +
+      '<div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">' +
+        '<div style="width:100px;height:100px;border-radius:50%;background:' + pieGradient + ';position:relative;flex-shrink:0">' +
+          '<div style="position:absolute;inset:22%;background:var(--card);border-radius:50%;display:flex;align-items:center;justify-content:center">' +
+            '<span style="font-size:13px;font-weight:700;color:var(--text)">' + pieTotal + '次</span>' +
           '</div>' +
-          '<div style="display:flex;flex-direction:column;gap:6px;text-align:left">' +
-            pieData.map(function(sd){
-              var pct = ((sd.count / pieTotal) * 100).toFixed(1);
-              return '<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)">' +
-                '<div style="width:10px;height:10px;border-radius:50%;background:' + sd.color + ';flex-shrink:0"></div>' +
-                '<span>' + sd.emoji + ' ' + sd.name + '</span>' +
-                '<span style="color:var(--text4);font-size:11px">' + sd.count + '次 ' + pct + '%</span>' +
-              '</div>';
-            }).join('') +
-          '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;text-align:left">' +
+          pieData.map(function(sd){
+            var pct = ((sd.count / pieTotal) * 100).toFixed(1);
+            return '<div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)">' +
+              '<div style="width:10px;height:10px;border-radius:50%;background:' + sd.color + ';flex-shrink:0"></div>' +
+              '<span>' + sd.emoji + ' ' + sd.name + '</span>' +
+              '<span style="color:var(--text4);font-size:11px">' + sd.count + '次 ' + pct + '%</span>' +
+            '</div>';
+          }).join('') +
         '</div>' +
       '</div>' +
     '</div>';
   }
+
+  // 饼图下方主体选择器
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">' +
+    '<div class="sf-chip sf-all ' + (STATE.dayStatFilter==='all'?'active':'') + '" onclick="setDayStatFilter(\'all\')" style="cursor:pointer"><span class="sf-name">全部</span></div>' +
+    (STATE.subjects.map(function(s){ return '<div class="sf-chip '+(STATE.dayStatFilter===s.id?'active':'')+'" onclick="setDayStatFilter(\''+s.id+'\')" style="cursor:pointer"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+s.name+'</span></div>'; }).join('')) +
+    (STATE.customSubjects.map(function(s){ return '<div class="sf-chip '+(STATE.dayStatFilter===s.id?'active':'')+'" onclick="setDayStatFilter(\''+s.id+'\')" style="cursor:pointer"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+escapeHtml(s.name)+'</span></div>'; }).join('')) +
+  '</div>';
 
   // V21.26: 按动作分组统计
   var actCum = {};
@@ -7320,10 +7371,6 @@ function renderCumulative(records, title, subtitle){
       });
     });
   }
-
-  html += '<div class="stat-card">' +
-      '<div class="sc-title-wrap" onclick="toggleCard(this.querySelector(\'.sc-expand-btn\'),\'cumSub\')"><div class="sc-title-text">日复一日的力量 <span class="sc-sub">'+subtitle+' · '+records.length+'条</span></div><div class="sc-expand-btn">∨</div></div>' +
-    '<div class="sc-body" id="cardBody_cumSub">';
 
   if(STATE.statViewMode === 'action'){
     // V21.26: 按动作查看
