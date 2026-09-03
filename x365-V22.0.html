@@ -8402,7 +8402,7 @@ function openAddGoal(){
     '</div>' +
     '<div class="goal-modal-field"><label>预计达成日期</label><input type="date" id="goalEstDate" style="width:100%"></div>' +
     '<div style="display:flex;gap:10px;margin-top:16px">' +
-      '<button onclick="this.closest('.modal-overlay').remove()" style="flex:1;padding:12px;border-radius:9999px;border:none;background:var(--bg);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer">取消</button>' +
+      '<button onclick="this.closest(\'.modal-overlay\').remove()" style="flex:1;padding:12px;border-radius:9999px;border:none;background:var(--bg);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer">取消</button>' +
       '<button onclick="saveNewGoal()" style="flex:1;padding:12px;border-radius:9999px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer">保存</button>' +
     '</div></div>';
   goalSubRowCount = 1;
@@ -8615,7 +8615,7 @@ function openEditGoal(id){
   '</div>' +
   '<div class="goal-modal-field"><label>预计达成日期</label><input type="date" id="goalEstDate" value="'+(goal.estDate||'')+'" style="width:100%"></div>' +
   '<div style="display:flex;gap:10px;margin-top:16px">' +
-    '<button onclick="this.closest('.modal-overlay').remove()" style="flex:1;padding:12px;border-radius:9999px;border:none;background:var(--bg);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer">取消</button>' +
+    '<button onclick="this.closest(\'.modal-overlay\').remove()" style="flex:1;padding:12px;border-radius:9999px;border:none;background:var(--bg);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer">取消</button>' +
     '<button onclick="saveEditGoal('+goal.id+')" style="flex:1;padding:12px;border-radius:9999px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer">保存</button>' +
   '</div></div>';
   modal.innerHTML = html;
