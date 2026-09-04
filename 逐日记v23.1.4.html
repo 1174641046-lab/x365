@@ -8750,21 +8750,12 @@ function updateGoalDayBreakdown(){
   }
 
   var html = '<div style="background:var(--card2);border-radius:14px;padding:10px 12px;margin-top:8px">' +
-    '<div style="font-size:12px;color:var(--text4);margin-bottom:8px;font-weight:600">\u62C6\u5206\u660E\u7EC6\uFF08\u5171 ' + n + ' \u5929\uFF09</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto">';
-  for(var j = 0; j < dates.length; j++){
-    var d = dates[j];
-    var label = (d.getMonth()+1) + '/' + d.getDate();
-    if(period === 'weekly') label += '\u5468' + dayNames[d.getDay()];
-    var targetHtml = dayTargets.map(function(t){
-      return escapeHtml(t.name) + ' ' + fmtQty(t.qty) + t.unit;
-    }).join('\u3001');
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;background:var(--bg);font-size:12px;color:var(--text2);border:1px solid var(--sep)">' +
-      '<span style="color:var(--green);font-weight:600;min-width:56px;flex-shrink:0">' + label + '</span>' +
-      '<span style="flex:1">' + targetHtml + '</span>' +
-    '</div>';
-  }
-  html += '</div></div>';
+    '<div style="font-size:12px;color:var(--text4);margin-bottom:6px;font-weight:600">\u62C6\u5206\u660E\u7EC6\uFF08\u5171 ' + n + ' \u5929\uFF09</div>';
+  var targetHtml = dayTargets.map(function(t){
+    return '\u6BCF\u5929 ' + escapeHtml(t.name) + ' ' + fmtQty(t.qty) + t.unit;
+  }).join('<br>');
+  html += '<div style="font-size:13px;color:var(--text2);line-height:1.8">' + targetHtml + '</div>';
+  html += '</div>';
   container.innerHTML = html;
 }
 
