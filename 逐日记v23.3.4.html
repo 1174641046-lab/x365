@@ -1165,11 +1165,9 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 
     <div id="goalPreviewSection" style="display:none;padding:0 20px;margin-bottom:8px"></div>
 
-    <div class="section-label" id="todayTodoLabel" style="display:none">今日待办</div>
     <div class="today-todo-section" id="todayTodoSection" style="padding:0 20px;margin-bottom:4px"></div>
     <div class="diary-section" id="subjectDiaries"></div>
 
-    <div class="section-label">常用动作</div>
     <div class="quick-actions" id="quickActions">
       <div style="text-align:center;padding:16px 0;color:var(--text4)">加载中...</div>
     </div>
@@ -6096,7 +6094,11 @@ function renderQuickActions(){
   });
 
   // 渲染
-  var html = '<div class="qa-grid">';
+  var html = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">';
+  html += '<span style="font-size:14px;font-weight:700;color:var(--text)">⚡ 常用动作</span>';
+  html += '<span style="font-size:12px;color:var(--text4);flex:1">' + quickActions.length + '个动作</span>';
+  html += '</div>';
+  html += '<div class="qa-grid">';
   quickActions.forEach(function(q){
     var icon = getActionIcon(q.name, null, q.category);
     html += '<div class="qa-item" onclick="openQuickAddModal(\''+q.name+'\')">'+
@@ -6331,13 +6333,11 @@ function manualAddReminderSave(){
 // ===== 渲染 - 主体日记本 =====
 function renderTodayTodos(){
   var container = document.getElementById('todayTodoSection');
-  var label = document.getElementById('todayTodoLabel');
   if(!container) return;
   var today = formatDate(new Date());
   var todos = (STATE.reminders || []).filter(function(rm){
     return rm.remindDate === today && !rm.completed;
   });
-  if(label) label.style.display = 'block';
   container.style.display = 'block';
   var total = todos.length;
   var collapsed = container.getAttribute('data-collapsed') === '1';
