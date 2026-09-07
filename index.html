@@ -10,7 +10,15 @@
 </head>
 <body>
 <script>
-location.replace("https://1174641046-lab.github.io/x365/逐日记v23.3.9.html?v=29");
+// v29: 强制清理PWA缓存，确保加载最新版本
+if(window.navigator && navigator.serviceWorker){
+  navigator.serviceWorker.getRegistrations().then(function(regs){
+    regs.forEach(function(reg){ reg.unregister(); });
+  });
+}
+// 添加时间戳防止浏览器缓存
+var ts = new Date().getTime();
+location.replace("https://1174641046-lab.github.io/x365/逐日记v23.3.9.html?v=29&t=" + ts);
 </script>
 </body>
 </html>
