@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-title" content="逐日记">
-<link rel="manifest" href="manifest.json?v=32">
+<link rel="manifest" href="manifest.json?v=33">
 <link rel="apple-touch-icon" href="icon-192.png">
   <title>逐日记 v23.3.12</title>
 <style>
@@ -1188,12 +1188,12 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       <button class="enc-btn" id="encBtn" onclick="hideEncouragement()">开启新的一天！</button>
     </div>
 
-    <div id="goalPreviewSection" style="display:none;padding:0 20px;margin-bottom:8px"></div>
+    <div id="goalPreviewSection" style="display:none;padding:0 20px;margin-bottom:12px"></div>
 
-    <div class="today-todo-section" id="todayTodoSection" style="padding:0 20px;margin-bottom:8px"></div>
-    <div class="diary-section" id="subjectDiaries" style="margin-bottom:8px"></div>
+    <div class="today-todo-section" id="todayTodoSection" style="padding:0 20px;margin-bottom:12px"></div>
+    <div class="diary-section" id="subjectDiaries" style="margin-bottom:12px"></div>
 
-    <div style="padding:0 20px;margin-bottom:8px"><span style="font-size:14px;font-weight:700;color:var(--text)">⚡ 常用动作</span></div>
+    <div style="padding:0 20px;margin-bottom:12px"><span style="font-size:14px;font-weight:700;color:var(--text)">⚡ 常用动作</span></div>
     <div class="quick-actions" id="quickActions">
       <div style="text-align:center;padding:16px 0;color:var(--text4)">加载中...</div>
     </div>
@@ -6525,7 +6525,7 @@ function renderTodayTodos(){
   container.style.display = 'block';
   var total = todos.length;
   var collapsed = container.getAttribute('data-collapsed') === '1';
-  var html = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:'+(collapsed?'0':'8px')+';cursor:pointer;user-select:none" onclick="toggleTodayTodoSection()">';
+  var html = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:'+(collapsed?'0':'12px')+';cursor:pointer;user-select:none" onclick="toggleTodayTodoSection()">';
   html += '<span style="font-size:14px;font-weight:700;color:var(--text)">📋 今日待办</span>';
   html += '<span style="font-size:12px;color:var(--text4);flex:1">'+(total>0?total+'项待完成':'暂无待办')+'</span>';
   html += '<span style="font-size:12px;color:var(--text4);transition:transform .2s;transform:'+(collapsed?'rotate(-90deg)':'rotate(0)')+'">▼</span>';
@@ -6651,7 +6651,7 @@ function renderSubjectDiaries(){
   var html = '';
   var allSubjects = STATE.subjects.concat(STATE.customSubjects);
   // v23.3.4: add title row
-  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">';
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">';
   html += '<span style="font-size:14px;font-weight:700;color:var(--text)">📒 主体日记本</span>';
   html += '<span style="font-size:12px;color:var(--text4);flex:1">' + allSubjects.length + '个主体</span>';
   html += '</div>';
@@ -8758,7 +8758,7 @@ function renderGoalPreview(){
     el.style.display = 'none';
     return;
   }
-  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">';
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">';
   html += '<span style="font-size:14px;font-weight:700;color:var(--text)">\u{1F3AF} \u76EE\u6807\u8FDB\u5EA6</span>';
   html += '<span style="font-size:12px;color:var(--text4);flex:1">' + activeGoals.length + '\u4E2A\u8FDB\u884C\u4E2D</span>';
   html += '<span style="font-size:12px;color:var(--green);font-weight:500;cursor:pointer" onclick="goToGoalPage()">\u5168\u90E8 \u203A</span>';
@@ -8776,7 +8776,7 @@ function renderGoalPreview(){
     var color = getCatColor(cat);
     var unit = getActionUnit(resolvedName || g.actionName);
     html += '<div style="flex-shrink:0;width:140px;background:var(--card);border-radius:14px;padding:12px;box-shadow:0 1px 3px var(--shadow);cursor:pointer">';
-    html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">';
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">';
     html += '<div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:'+color+'20">'+getActionIconStyled(icon, cat, 16)+'</div>';
     html += '<span style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+escapeHtml(goalName)+'</span>';
     html += '</div>';
