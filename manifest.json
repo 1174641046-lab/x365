@@ -1,11 +1,11 @@
 {
   "name": "逐日记",
   "short_name": "逐日记",
-  "description": "再小的坚持也有力量",
-  "start_url": "index.html?v=32",
+  "description": "习惯记录与生活管理",
+  "start_url": "逐日记v23.3.13.html?v=35",
   "display": "standalone",
-  "background_color": "#FEFDF0",
-  "theme_color": "#3a8252",
+  "background_color": "#F2F2F7",
+  "theme_color": "#F2F2F7",
   "orientation": "portrait",
   "icons": [
     {
