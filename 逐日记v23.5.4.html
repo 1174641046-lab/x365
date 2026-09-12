@@ -1104,8 +1104,8 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 [data-theme="light"] .settings-dropdown-card{
   background:#FFFFFF;box-shadow:0 1px 4px rgba(60,60,60,.04);
 }
-  input[type="date"]{display:flex;align-items:center;height:40px;padding-top:0;padding-bottom:0;-webkit-appearance:none;appearance:none}
-  input[type="date"]::-webkit-datetime-edit{display:block;padding:12px 0}
+  input[type="date"]{display:flex;align-items:center;height:40px !important;min-height:40px !important;line-height:40px;-webkit-appearance:none !important;appearance:none !important;border:none !important;box-shadow:none !important;padding:0 12px}
+  input[type="date"]::-webkit-datetime-edit{display:block;padding:0;margin:0;line-height:40px}
   input[type="date"]::-webkit-calendar-picker-indicator{opacity:0.7}
 </style>
 </head>
