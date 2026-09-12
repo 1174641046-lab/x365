@@ -5384,7 +5384,7 @@ function editReminder(idx){
   repVals.forEach(function(p){ html += '<option value="'+p[0]+'"'+((r.repeat||'none')===p[0]?' selected':'')+'>'+p[1]+'</option>'; });
   html += '</select></div>';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">重复截止</div>';
-  html += '<input type="date" id="editReminderRepeatUntil" value="' + (r.repeatUntil || '') + '" style="width:100%;padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box;outline:none;border:none;-webkit-appearance:none;appearance:none;font-family:var(--font)"></div>';
+  html += '<input type="date" id="editReminderRepeatUntil" value="' + (r.repeatUntil || '') + '" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box"></div>';
   html += '</div>';
 
   html += '<div class="ms-actions">';
