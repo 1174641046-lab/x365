@@ -1,12 +1,10 @@
 {
   "name": "逐日记",
   "short_name": "逐日记",
-  "description": "习惯记录与生活管理",
-  "start_url": "逐日记v23.5.1.html?v=44",
+  "start_url": "逐日记v23.5.2.html?v=45",
   "display": "standalone",
-  "background_color": "#F2F2F7",
-  "theme_color": "#F2F2F7",
-  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6b6b",
   "icons": [
     {
       "src": "icon-192.png",
