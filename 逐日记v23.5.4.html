@@ -1104,6 +1104,9 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 [data-theme="light"] .settings-dropdown-card{
   background:#FFFFFF;box-shadow:0 1px 4px rgba(60,60,60,.04);
 }
+  input[type="date"]{display:flex;align-items:center;height:40px;padding-top:0;padding-bottom:0;-webkit-appearance:none;appearance:none}
+  input[type="date"]::-webkit-datetime-edit{display:block;padding:12px 0}
+  input[type="date"]::-webkit-calendar-picker-indicator{opacity:0.7}
 </style>
 </head>
 <body>
@@ -5361,9 +5364,9 @@ function editReminder(idx){
   var editTimeVal = r.remindTime || '09:00';
   html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
-  html += '<input type="date" id="editReminderDate" value="'+r.remindDate+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box"></div>';
+  html += '<input type="date" id="editReminderDate" value="'+r.remindDate+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box;height:40px"></div>';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
-  html += '<input type="time" id="editReminderTime" value="'+editTimeVal+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box"></div>';
+  html += '<input type="time" id="editReminderTime" value="'+editTimeVal+'" style="width:100%;padding:8px 12px;border-radius:9999px;border:none;background:var(--card2);color:var(--text);font-size:14px;outline:none;box-sizing:border-box;height:40px"></div>';
   html += '</div>';
 
   // v23.5.2: two-column layout for priority/advance and repeat/repeatUntil
@@ -5473,9 +5476,9 @@ function openAddReminder(defaultSubject){
 
   html += '<div style="display:flex;gap:12px;margin-bottom:10px">';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">日期</div>';
-  html += '<input type="date" id="newReminderDate" value="'+today+'" style="width:100%;padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box;outline:none;border:none;-webkit-appearance:none;appearance:none;font-family:var(--font)"></div>';
+  html += '<input type="date" id="newReminderDate" value="'+today+'" style="width:100%;padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box;outline:none;border:none;-webkit-appearance:none;appearance:none;font-family:var(--font);height:40px"></div>';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">时间</div>';
-  html += '<input type="time" id="newReminderTime" value="09:00" style="width:100%;padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box;outline:none;border:none;-webkit-appearance:none;appearance:none;font-family:var(--font)"></div>';
+  html += '<input type="time" id="newReminderTime" value="09:00" style="width:100%;padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box;outline:none;border:none;-webkit-appearance:none;appearance:none;font-family:var(--font);height:40px"></div>';
   html += '</div>';
 
   // v23.5.2: two-column layout for priority/advance and repeat/repeatUntil
@@ -5499,7 +5502,7 @@ function openAddReminder(defaultSubject){
   html += '<option value="monthly">每月</option>';
   html += '</select></div>';
   html += '<div style="flex:1"><div class="ms-label" style="margin-bottom:4px">重复截止</div>';
-  html += '<input type="date" id="newReminderRepeatUntil" style="width:100%;padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box;outline:none;border:none;-webkit-appearance:none;appearance:none;font-family:var(--font);min-height:40px"></div>';
+  html += '<input type="date" id="newReminderRepeatUntil" style="width:100%;padding:8px 12px;border-radius:15px;background:var(--card2);color:var(--text);font-size:14px;text-align:center;box-sizing:border-box;outline:none;border:none;-webkit-appearance:none;appearance:none;font-family:var(--font);height:40px"></div>';
   html += '</div>';
 
 
