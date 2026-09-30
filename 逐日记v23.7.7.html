@@ -6593,7 +6593,7 @@ var QA_DEFAULTS_BY_SUBJECT = {
     {name:'玩耍',category:'社交',unit:'次'},
     {name:'驱虫',category:'健康',unit:'次'},
     {name:'剪指甲',category:'健康',unit:'次'},
-    {name:'遛狗',category:'运动',unit:'次'},
+    {name:'刷牙',category:'健康',unit:'次'},
     {name:'称重',category:'健康',unit:'次'},
     {name:'检查耳朵',category:'健康',unit:'次'}
   ],
@@ -6652,16 +6652,18 @@ function renderQASubjectFilter(){
   if(!container) return;
   var filter = STATE.qaFilter;
   var html = '<div class="sf-chip sf-all '+(filter==='all'?'active':'')+'" onclick="setQAFilter(\'all\')"><span class="sf-name">全部</span><span class="sf-name-en">All</span></div>';
-  // 内置主体
-  var subMap = {'user':'🙋我','dog':'🐕狗狗','cat':'🐈猫咪','baby':'👶宝宝','plant':'🌿植物','family':'👨‍👩‍👧家人'};
-  Object.keys(subMap).forEach(function(id){
-    var active = filter === id ? 'active' : '';
-    html += '<div class="sf-chip '+active+'" onclick="setQAFilter(\''+id+'\')"><span class="sf-name">'+subMap[id]+'</span></div>';
-  });
+  // 合并所有可用主体：STATE.subjects（内置+用户创建） + customSubjects
+  var allSubs = [];
+  // 内置/已创建主体
+  STATE.subjects.forEach(function(s){ allSubs.push(s); });
   // 自定义主体
-  STATE.customSubjects.forEach(function(s){
+  STATE.customSubjects.forEach(function(s){ allSubs.push(s); });
+  // 去重（按 id）
+  var seen = {};
+  allSubs = allSubs.filter(function(s){ if(seen[s.id]) return false; seen[s.id] = true; return true; });
+  allSubs.forEach(function(s){
     var active = filter === s.id ? 'active' : '';
-    html += '<div class="sf-chip '+active+'" onclick="setQAFilter(\''+s.id+'\')"><span class="sf-emoji">'+s.emoji+'</span><span class="sf-name">'+escapeHtml(s.name)+'</span></div>';
+    html += '<div class="sf-chip '+active+'" onclick="setQAFilter(\''+s.id+'\')"><span class="sf-emoji">'+(s.emoji||'')+'</span><span class="sf-name">'+escapeHtml(s.name)+'</span></div>';
   });
   container.innerHTML = html;
 }
@@ -6761,7 +6763,7 @@ function openQuickAddModal(name){
   // 查找该动作历史记录中使用的单位、category、主体和常用数量
   var defaultUnit = '次';
   var foundCategory = '其他';
-  var defaultSubject = 'user';
+  var defaultSubject = (STATE.qaFilter && STATE.qaFilter !== 'all') ? STATE.qaFilter : 'user';
   var foundIcon = null;
   var defaultQty = 1;
   var qtyCounts = {};
