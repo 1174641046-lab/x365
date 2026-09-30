@@ -1206,7 +1206,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
     <div class="diary-section" id="subjectDiaries" style="margin-bottom:20px"></div>
 
     <div style="padding:0 20px;margin-bottom:20px"><span style="font-size:14px;font-weight:700;color:var(--text)">⚡ 常用动作</span></div>
-    <div class="subject-filter" id="qaSubjectFilter" style="padding:4px 20px 8px"></div>
+    <div class="subject-filter qa-no-float" id="qaSubjectFilter" style="padding:4px 20px 8px"></div>
     <div class="quick-actions" id="quickActions">
       <div style="text-align:center;padding:16px 0;color:var(--text4)">加载中...</div>
     </div>
@@ -9046,7 +9046,7 @@ function setCalActionFilter(name){
 function initScrollFloat(){
   var pages = document.querySelectorAll('.page');
   pages.forEach(function(page){
-    var filter = page.querySelector('.subject-filter');
+    var filter = page.querySelector('.subject-filter:not(.qa-no-float)');
     if(!filter) return;
     var container = page.querySelector('.page-content') || page;
     
