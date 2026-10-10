@@ -12317,14 +12317,22 @@ function renderCalActionHistory(){
       var name = a.standardName || a.action;
       if(!name) return;
       if(STATE.calActionFilter.indexOf(name) !== -1){
-        hist[name] = (hist[name] || 0) + (a.quantity || 1);
+        if(!hist[name]) hist[name] = {count:0, minutes:0};
+        hist[name].count += (a.quantity || 1);
+        if(a.actualDuration > 0){
+          hist[name].minutes += (a.quantity || 1) * a.actualDuration;
+        } else {
+          var actDef = STATE.customActions[name] || {};
+          if(actDef.durationPerTime > 0) hist[name].minutes += (a.quantity || 1) * actDef.durationPerTime;
+        }
       }
     });
   });
   var lines = STATE.calActionFilter.map(function(name){
-    var count = hist[name] || 0;
+    var h = hist[name] || {count:0, minutes:0};
     var icon = getActionIcon(name);
-    return icon + ' ' + escapeHtml(name) + ' · 📊 历史累计打卡 ' + count + ' 次';
+    var minStr = h.minutes > 0 ? '，共 ' + h.minutes + ' 分钟' : '';
+    return icon + ' ' + escapeHtml(name) + ' · 📊 历史累计打卡 ' + h.count + ' 次' + minStr;
   });
   content.innerHTML = lines.join('<br>');
   container.style.display = 'block';
@@ -12508,14 +12516,21 @@ function renderCalDayDetail(dateStr){
     });
   });
   
-// V23.7.4: 计算各动作历史总次数（尊重主体筛选）
+// V23.8.0: 计算各动作历史总次数+总分钟（尊重主体筛选）
   var histCountMap = {};
   STATE.records.forEach(function(r){
     if(STATE.calFilter !== 'all' && r.subject !== STATE.calFilter) return;
     r.actions.forEach(function(a){
       var n = a.standardName || a.action;
       if(!n) return;
-      histCountMap[n] = (histCountMap[n] || 0) + (a.quantity || 1);
+      if(!histCountMap[n]) histCountMap[n] = {count:0, minutes:0};
+      histCountMap[n].count += (a.quantity || 1);
+      if(a.actualDuration > 0){
+        histCountMap[n].minutes += (a.quantity || 1) * a.actualDuration;
+      } else {
+        var actDef2 = STATE.customActions[n] || {};
+        if(actDef2.durationPerTime > 0) histCountMap[n].minutes += (a.quantity || 1) * actDef2.durationPerTime;
+      }
     });
   });
 
@@ -12542,8 +12557,8 @@ function renderCalDayDetail(dateStr){
       imagesHtml += '</div>';
     }
     // V23.7.4: 动作历史总次数
-    var histCount = histCountMap[m.standardName] || 0;
-    var histStr = histCount > 0 ? '<div style="font-size:11px;color:var(--text4);margin-top:2px">📊 历史累计打卡 '+histCount+' 次</div>' : '';
+    var hcm = histCountMap[m.standardName] || {count:0, minutes:0};
+    var histStr = hcm.count > 0 ? '<div style="font-size:11px;color:var(--text4);margin-top:2px">📊 历史累计打卡 '+hcm.count+' 次'+(hcm.minutes>0?'，共 '+hcm.minutes+' 分钟':'')+'</div>' : '';
     var calDetailId = 'calDetail_' + idx;
     // V19.14: count=1 直接点击编辑，count>1 点击展开后逐条编辑
     var rowClick = m.count > 1 
