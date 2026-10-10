@@ -494,7 +494,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .sf-chip .sf-name{font-size:12px}
 .sf-chip .sf-name-en{display:none}
 
-/* ===== V23.8.0: 打卡页动作筛选器 — 自定义下拉 ===== */
+/* ===== V23.8.0: 打卡页动作筛选器 — 自定义下拉（两列） ===== */
 .cal-action-dropdown{position:relative;padding:0 20px;margin-bottom:4px;z-index:50}
 .cal-action-dropdown-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card2);border-radius:var(--capsule);padding:6px 12px;cursor:pointer;border:1px solid transparent;transition:all .15s}
 .cal-action-dropdown-btn:active{background:var(--card3);transform:scale(.98)}
@@ -503,20 +503,18 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .cal-action-dropdown-count{flex-shrink:0;font-size:10px;color:#fff;background:var(--green);border-radius:9999px;padding:1px 6px;font-weight:600}
 .cal-action-dropdown-arrow{font-size:12px;color:var(--text3);transition:transform .2s;margin-left:2px}
 .cal-action-dropdown.open .cal-action-dropdown-arrow{transform:rotate(180deg)}
-.cal-action-dropdown-list{position:absolute;top:calc(100% + 4px);left:20px;right:20px;max-height:260px;overflow-y:auto;background:var(--card2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);border:1px solid var(--line2);padding:6px 0;display:none;z-index:100;-webkit-overflow-scrolling:touch}
-.cal-action-dropdown.open .cal-action-dropdown-list{display:block}
-.cal-action-dropdown-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--line);font-size:13px;color:var(--text)}
-.cal-action-dropdown-item:last-child{border-bottom:none}
+.cal-action-dropdown-list{position:absolute;top:calc(100% + 4px);left:20px;right:20px;max-height:320px;overflow-y:auto;background:var(--card2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);border:1px solid var(--line2);padding:6px;display:none;z-index:100;-webkit-overflow-scrolling:touch}
+.cal-action-dropdown.open .cal-action-dropdown-list{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.cal-action-dropdown-item{display:flex;align-items:center;gap:6px;padding:8px;cursor:pointer;transition:background .1s;border-radius:8px;font-size:12px;color:var(--text);background:var(--card2)}
 .cal-action-dropdown-item:active{background:var(--card3)}
 .cal-action-dropdown-item.selected{background:var(--green-bg)}
-.cal-action-dropdown-item .check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--text3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.cal-action-dropdown-item .check{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--text3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
 .cal-action-dropdown-item.selected .check{background:var(--green);border-color:var(--green);color:#fff}
-.cal-action-dropdown-item .check svg{display:none;width:10px;height:10px;stroke-width:3;stroke:currentColor;fill:none}
+.cal-action-dropdown-item .check svg{display:none;width:9px;height:9px;stroke-width:3;stroke:currentColor;fill:none}
 .cal-action-dropdown-item.selected .check svg{display:block}
-.cal-action-dropdown-item .sf-emoji{font-size:14px;flex-shrink:0}
+.cal-action-dropdown-item .sf-emoji{font-size:13px;flex-shrink:0}
 .cal-action-dropdown-item .sf-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cal-action-dropdown-item .sf-count{font-size:10px;color:var(--text4);flex-shrink:0}
-
+.cal-action-dropdown-item .sf-count{font-size:9px;color:var(--text4);flex-shrink:0}
 /* ===== End: 打卡页动作筛选器下拉 ===== */
 .date-filter{display:flex;gap:6px;padding:0 20px 8px;overflow-x:auto;scrollbar-width:none}
 .date-filter::-webkit-scrollbar{display:none}
@@ -9133,7 +9131,10 @@ function renderCalActionFilter(){
 
   container.style.display = 'block';
 
-  // 下拉按钮标签：未选→「筛选动作」；单选→显示该动作；多选→「已选N个」
+  // 保存下拉打开状态，重建后恢复
+  var wasOpen = container.classList.contains('open');
+
+  // 下拉按钮标签
   var sel = STATE.calActionFilter;
   var labelText, labelIcon;
   if(sel.length === 0){
@@ -9152,13 +9153,20 @@ function renderCalActionFilter(){
     '</div>' +
     '<div class="cal-action-dropdown-list" id="calActionDropdownList">';
 
-  // "全部" 选项
+  // 顶部：全部动作 + 排序动作（一行两列）
   var allSel = sel.length === 0;
-  html += '<div class="cal-action-dropdown-item ' + (allSel ? 'selected' : '') + '" onclick="setCalActionDropdown(\'all\')">' +
+  html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:4px">' +
+    '<div class="cal-action-dropdown-item ' + (allSel ? 'selected' : '') + '" onclick="setCalActionDropdown(\'all\')">' +
     '<div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +
     '<span class="sf-name" style="flex:1">全部动作</span>' +
+    '</div>' +
+    '<div class="cal-action-dropdown-item" onclick="closeCalActionDropdown();openActionOrderModal()" style="color:var(--text4)">' +
+    '<span class="sf-emoji">🔄</span>' +
+    '<span class="sf-name">排序动作</span>' +
+    '</div>' +
     '</div>';
 
+  // 动作列表（两列网格）
   names.forEach(function(name){
     var a = actionNames[name];
     var isSel = sel.indexOf(name) !== -1;
@@ -9170,18 +9178,15 @@ function renderCalActionFilter(){
       '</div>';
   });
 
-  // V19.58: 末尾添加动作排序入口
-  html += '<div class="cal-action-dropdown-item" onclick="closeCalActionDropdown();openActionOrderModal()" style="color:var(--text4);border-top:1px solid var(--line)">' +
-    '<span class="sf-emoji">🔄</span>' +
-    '<span class="sf-name">排序动作</span>' +
-    '</div>';
-
   html += '</div>';
   container.innerHTML = html;
 
-  // 点击外部关闭
-  document.removeEventListener('click', _closeCalDropdown);
-  document.addEventListener('click', _closeCalDropdown);
+  // 恢复打开状态
+  if(wasOpen){
+    container.classList.add('open');
+    var btn = document.getElementById('calActionDropdownBtn');
+    if(btn) btn.classList.add('open');
+  }
 }
 
 var _calDropdownOpen = false;
