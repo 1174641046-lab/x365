@@ -494,7 +494,30 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .sf-chip .sf-name{font-size:12px}
 .sf-chip .sf-name-en{display:none}
 
-/* Date filter */
+/* ===== V23.8.0: 打卡页动作筛选器 — 自定义下拉 ===== */
+.cal-action-dropdown{position:relative;padding:0 20px;margin-bottom:4px;z-index:50}
+.cal-action-dropdown-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--card2);border-radius:var(--capsule);padding:6px 12px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.cal-action-dropdown-btn:active{background:var(--card3);transform:scale(.98)}
+.cal-action-dropdown-btn.open{border-color:var(--green-dim)}
+.cal-action-dropdown-label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.cal-action-dropdown-count{flex-shrink:0;font-size:10px;color:#fff;background:var(--green);border-radius:9999px;padding:1px 6px;font-weight:600}
+.cal-action-dropdown-arrow{font-size:12px;color:var(--text3);transition:transform .2s;margin-left:2px}
+.cal-action-dropdown.open .cal-action-dropdown-arrow{transform:rotate(180deg)}
+.cal-action-dropdown-list{position:absolute;top:calc(100% + 4px);left:20px;right:20px;max-height:260px;overflow-y:auto;background:var(--card2);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);border:1px solid var(--line2);padding:6px 0;display:none;z-index:100;-webkit-overflow-scrolling:touch}
+.cal-action-dropdown.open .cal-action-dropdown-list{display:block}
+.cal-action-dropdown-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:background .1s;border-bottom:1px solid var(--line);font-size:13px;color:var(--text)}
+.cal-action-dropdown-item:last-child{border-bottom:none}
+.cal-action-dropdown-item:active{background:var(--card3)}
+.cal-action-dropdown-item.selected{background:var(--green-bg)}
+.cal-action-dropdown-item .check{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--text3);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.cal-action-dropdown-item.selected .check{background:var(--green);border-color:var(--green);color:#fff}
+.cal-action-dropdown-item .check svg{display:none;width:10px;height:10px;stroke-width:3;stroke:currentColor;fill:none}
+.cal-action-dropdown-item.selected .check svg{display:block}
+.cal-action-dropdown-item .sf-emoji{font-size:14px;flex-shrink:0}
+.cal-action-dropdown-item .sf-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-action-dropdown-item .sf-count{font-size:10px;color:var(--text4);flex-shrink:0}
+
+/* ===== End: 打卡页动作筛选器下拉 ===== */
 .date-filter{display:flex;gap:6px;padding:0 20px 8px;overflow-x:auto;scrollbar-width:none}
 .date-filter::-webkit-scrollbar{display:none}
 .date-filter .df-chip{padding:3px 10px;border-radius:var(--capsule);background:var(--card2);font-size:11px;color:var(--text3);white-space:nowrap;cursor:pointer;flex-shrink:0;border:1px solid transparent}
@@ -1311,7 +1334,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
     <div class="cal-panel" id="calPanelCalendar" style="display:flex">
       <div class="tl-search-bar" id="calSearchBar" style="display:none"><input type="text" id="calSearchInput" placeholder="🔍 搜索记录..." oninput="onCalSearch(this.value)"><div class="tl-search-clear" id="calSearchClear" onclick="clearCalSearch()">✕</div></div>
       <div class="subject-filter" id="calSubjectFilter"></div>
-      <div class="subject-filter" id="calActionFilter" style="display:none"></div>
+      <div class="cal-action-dropdown" id="calActionFilter" style="display:none"></div>
       <div class="cal-month-nav">
         <div class="cal-nav-btn" onclick="prevCalendarMonth()">‹</div>
         <div style="position:relative;display:flex;align-items:center">
@@ -9068,7 +9091,7 @@ function setFilter(containerId, subjectId){
 }
 
 
-// V19.14: 渲染打卡页动作筛选器（根据选中主体动态生成）
+// V23.8.0: 渲染打卡页动作筛选器 — 自定义下拉（支持多选）
 function renderCalActionFilter(){
   var container = document.getElementById('calActionFilter');
   if(!container) return;
@@ -9108,20 +9131,88 @@ function renderCalActionFilter(){
     return actionNames[b].count - actionNames[a].count;
   });
 
-  container.style.display = 'flex';
-  var activeAll = STATE.calActionFilter.length === 0 ? 'active' : '';
-  var html = '<div class="sf-chip sf-all '+activeAll+'" onclick="setCalActionFilter(\'all\')"><span class="sf-name">全部动作</span></div>';
+  container.style.display = 'block';
+
+  // 下拉按钮标签：未选→「筛选动作」；单选→显示该动作；多选→「已选N个」
+  var sel = STATE.calActionFilter;
+  var labelText, labelIcon;
+  if(sel.length === 0){
+    labelText = '筛选动作…'; labelIcon = '';
+  } else if(sel.length === 1){
+    var s = actionNames[sel[0]] || {icon:'', name: sel[0]};
+    labelText = s.name; labelIcon = s.icon || '';
+  } else {
+    labelText = '已选 ' + sel.length + ' 个动作'; labelIcon = '';
+  }
+
+  var html = '<div class="cal-action-dropdown-btn" id="calActionDropdownBtn" onclick="toggleCalActionDropdown(event)">' +
+    '<span class="cal-action-dropdown-label">' + (labelIcon ? labelIcon + ' ' : '') + escapeHtml(labelText) + '</span>' +
+    (sel.length > 0 && sel.length < names.length ? '<span class="cal-action-dropdown-count">' + sel.length + '</span>' : '') +
+    '<span class="cal-action-dropdown-arrow">▼</span>' +
+    '</div>' +
+    '<div class="cal-action-dropdown-list" id="calActionDropdownList">';
+
+  // "全部" 选项
+  var allSel = sel.length === 0;
+  html += '<div class="cal-action-dropdown-item ' + (allSel ? 'selected' : '') + '" onclick="setCalActionDropdown(\'all\')">' +
+    '<div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +
+    '<span class="sf-name" style="flex:1">全部动作</span>' +
+    '</div>';
+
   names.forEach(function(name){
     var a = actionNames[name];
-    var active = STATE.calActionFilter.indexOf(name) !== -1 ? 'active' : '';
-    html += '<div class="sf-chip '+active+'" onclick="setCalActionFilter(\''+escapeHtml(name).replace(/'/g,"\\'")+'\')"><span class="sf-emoji">'+(a.icon||'📝')+'</span><span class="sf-name">'+escapeHtml(name)+'</span></div>';
+    var isSel = sel.indexOf(name) !== -1;
+    html += '<div class="cal-action-dropdown-item ' + (isSel ? 'selected' : '') + '" onclick="setCalActionDropdown(\'' + escapeHtml(name).replace(/'/g, "\\'") + '\')">' +
+      '<div class="check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +
+      '<span class="sf-emoji">' + (a.icon || '📝') + '</span>' +
+      '<span class="sf-name">' + escapeHtml(name) + '</span>' +
+      '<span class="sf-count">' + a.count + '次</span>' +
+      '</div>';
   });
+
   // V19.58: 末尾添加动作排序入口
-  html += '<div class="sf-chip" onclick="openActionOrderModal()" style="color:var(--text4)"><span class="sf-emoji">🔄</span><span class="sf-name">排序</span></div>';
+  html += '<div class="cal-action-dropdown-item" onclick="closeCalActionDropdown();openActionOrderModal()" style="color:var(--text4);border-top:1px solid var(--line)">' +
+    '<span class="sf-emoji">🔄</span>' +
+    '<span class="sf-name">排序动作</span>' +
+    '</div>';
+
+  html += '</div>';
   container.innerHTML = html;
+
+  // 点击外部关闭
+  document.removeEventListener('click', _closeCalDropdown);
+  document.addEventListener('click', _closeCalDropdown);
 }
 
-function setCalActionFilter(name){
+var _calDropdownOpen = false;
+function _closeCalDropdown(e){
+  var container = document.getElementById('calActionFilter');
+  if(!container) return;
+  if(!container.contains(e.target)){
+    closeCalActionDropdown();
+  }
+}
+
+function toggleCalActionDropdown(e){
+  e.stopPropagation();
+  var container = document.getElementById('calActionFilter');
+  if(!container) return;
+  var isOpen = container.classList.toggle('open');
+  _calDropdownOpen = isOpen;
+  var btn = document.getElementById('calActionDropdownBtn');
+  if(btn) btn.classList.toggle('open', isOpen);
+}
+
+function closeCalActionDropdown(){
+  var container = document.getElementById('calActionFilter');
+  if(container) container.classList.remove('open');
+  var btn = document.getElementById('calActionDropdownBtn');
+  if(btn) btn.classList.remove('open');
+  _calDropdownOpen = false;
+}
+
+// V23.8.0: 下拉筛选多选交互 — 点选切换，与 STATE.calActionFilter 完全兼容
+function setCalActionDropdown(name){
   if(name === 'all'){
     STATE.calActionFilter = [];
   }else{
@@ -9134,6 +9225,7 @@ function setCalActionFilter(name){
   }
   renderCalendar();
   renderCalActionFilter();
+  renderCalActionHistory();
 }
 
 // ===== 滚动时主体筛选栏自动切换到右侧悬浮 =====
