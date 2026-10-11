@@ -521,6 +521,15 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
 .date-filter .df-chip{padding:3px 10px;border-radius:var(--capsule);background:var(--card2);font-size:11px;color:var(--text3);white-space:nowrap;cursor:pointer;flex-shrink:0;border:1px solid transparent}
 .date-filter .df-chip.active{background:var(--green-bg);color:var(--green);border-color:var(--green-dim)}
 
+/* ===== V23.8.0: 记录页底部 — 目标进度 + 今日待办 一行两列 ===== */
+.record-bottom-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 20px;margin-bottom:20px;margin-top:8px}
+.rb-card{background:var(--card2);border-radius:16px;padding:12px;border:1px solid var(--line2)}
+.rb-card .rb-title{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.rb-card .rb-title span:first-child{font-size:13px;font-weight:700;color:var(--text)}
+.rb-card .rb-title .rb-sub{font-size:11px;color:var(--text4);flex:1}
+.rb-card .rb-body{font-size:12px;color:var(--text2)}
+/* ===== End: 记录页底部两列 ===== */
+
 /* Date Filter Bar */
 .date-filter-bar{display:none}
 .df-chip{display:none}
@@ -1221,15 +1230,18 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       <button class="enc-btn" id="encBtn" onclick="hideEncouragement()">开启新的一天！</button>
     </div>
 
-    <div id="goalPreviewSection" style="display:none;padding:0 20px;margin-bottom:20px"></div>
-
-    <div class="today-todo-section" id="todayTodoSection" style="padding:0 20px;margin-bottom:20px"></div>
     <div class="diary-section" id="subjectDiaries" style="margin-bottom:20px"></div>
 
     <div style="padding:0 20px;margin-bottom:20px"><span style="font-size:14px;font-weight:700;color:var(--text)">⚡ 常用动作</span></div>
     <div class="subject-filter qa-no-float" id="qaSubjectFilter" style="padding:4px 20px 8px"></div>
     <div class="quick-actions" id="quickActions">
       <div style="text-align:center;padding:16px 0;color:var(--text4)">加载中...</div>
+    </div>
+
+    <!-- V23.8.0: 今日待办 + 目标进度 一行两列 -->
+    <div class="record-bottom-grid" id="recordBottomGrid" style="display:none">
+      <div class="rb-card" id="goalPreviewSection" style="display:none"></div>
+      <div class="rb-card today-todo-section" id="todayTodoSection" style="display:none"></div>
     </div>
   </div>
 
@@ -7073,6 +7085,17 @@ function manualAddReminderSave(){
 }
 
 // ===== 渲染 - 主体日记本 =====
+// V23.8.0: 更新记录页底部 grid 显隐
+function updateRecordBottomGrid(){
+  var grid = document.getElementById('recordBottomGrid');
+  var goal = document.getElementById('goalPreviewSection');
+  var todo = document.getElementById('todayTodoSection');
+  if(!grid) return;
+  var goalVisible = goal && goal.style.display !== 'none' && goal.innerHTML !== '';
+  var todoVisible = todo && todo.style.display !== 'none' && todo.innerHTML !== '';
+  grid.style.display = (goalVisible || todoVisible) ? 'grid' : 'none';
+}
+
 function renderTodayTodos(){
   var container = document.getElementById('todayTodoSection');
   if(!container) return;
@@ -7080,46 +7103,43 @@ function renderTodayTodos(){
   var todos = (STATE.reminders || []).filter(function(rm){
     return rm.remindDate === today && !rm.completed;
   });
-  container.style.display = 'block';
   var total = todos.length;
-  var collapsed = container.getAttribute('data-collapsed') === '1';
-  var html = '<div style="display:flex;align-items:center;gap:6px;margin-bottom:'+(collapsed?'0':'20px')+';cursor:pointer;user-select:none" onclick="toggleTodayTodoSection()">';
-  html += '<span style="font-size:14px;font-weight:700;color:var(--text)">📋 今日待办</span>';
-  html += '<span style="font-size:12px;color:var(--text4);flex:1">'+(total>0?total+'项待完成':'暂无待办')+'</span>';
-  html += '<span style="font-size:12px;color:var(--text4);transition:transform .2s;transform:'+(collapsed?'rotate(-90deg)':'rotate(0)')+'">▼</span>';
-  html += '</div>';
-  if(!collapsed){
-    // v23.3.11: vertical capsule list
-    html += '<div style="display:flex;flex-direction:column;gap:6px;">';
-    if(total > 0){
-      todos.forEach(function(rm){
-        var rmIdx = STATE.reminders.indexOf(rm);
-        var sub = rm.subject ? getSubject(rm.subject) : null;
-        var subName = sub ? sub.name : '';
-        var eventText = rm.event || rm.content || '提醒';
-        var timeStr = rm.remindTime ? rm.remindTime.substring(0,5) : '';
-        html += '<div style="display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:10px 14px;box-shadow:0 1px 3px var(--shadow);cursor:pointer;" onclick="editReminder('+rmIdx+')">';
-        // checkbox circle
-        html += '<div style="width:24px;height:24px;border-radius:50%;border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();completeTodayTodo('+rmIdx+')">';
-        html += '<span style="font-size:13px;color:var(--orange)">☐</span>';
-        html += '</div>';
-        // text
-        html += '<div style="flex:1;min-width:0">';
-        html += '<div style="font-size:14px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(eventText)+'</div>';
-        if(timeStr || subName){
-          html += '<div style="font-size:11px;color:var(--text4);margin-top:2px">'+(timeStr ? '🕐 '+timeStr : '')+(timeStr && subName ? ' · ' : '')+(subName ? escapeHtml(subName) : '')+'</div>';
-        }
-        html += '</div>';
-        html += '</div>';
-      });
-    }
-    // add button at bottom
-    html += '<div style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:14px;border:2px dashed var(--card3);cursor:pointer;color:var(--text4);font-size:13px;font-weight:500" onclick="openAddReminder()">';
-    html += '<span style="font-size:16px">+</span> 添加待办';
-    html += '</div>';
-    html += '</div>';
+  if(total === 0){
+    container.style.display = 'none';
+    container.innerHTML = '';
+    updateRecordBottomGrid();
+    return;
   }
+  container.style.display = 'block';
+  var html = '<div class="rb-title">';
+  html += '<span>📋 今日待办</span>';
+  html += '<span class="rb-sub">'+total+'项待完成</span>';
+  html += '</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:6px;">';
+  todos.forEach(function(rm){
+    var rmIdx = STATE.reminders.indexOf(rm);
+    var sub = rm.subject ? getSubject(rm.subject) : null;
+    var subName = sub ? sub.name : '';
+    var eventText = rm.event || rm.content || '提醒';
+    var timeStr = rm.remindTime ? rm.remindTime.substring(0,5) : '';
+    html += '<div style="display:flex;align-items:center;gap:8px;background:var(--card);border-radius:10px;padding:8px 10px;cursor:pointer;" onclick="editReminder('+rmIdx+')">';
+    html += '<div style="width:20px;height:20px;border-radius:50%;border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer" onclick="event.stopPropagation();completeTodayTodo('+rmIdx+')">';
+    html += '<span style="font-size:11px;color:var(--orange)">☐</span>';
+    html += '</div>';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(eventText)+'</div>';
+    if(timeStr || subName){
+      html += '<div style="font-size:10px;color:var(--text4);margin-top:1px">'+(timeStr ? '🕐 '+timeStr : '')+(timeStr && subName ? ' · ' : '')+(subName ? escapeHtml(subName) : '')+'</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+  });
+  html += '<div style="display:flex;align-items:center;justify-content:center;gap:4px;padding:8px;border-radius:10px;border:2px dashed var(--card3);cursor:pointer;color:var(--text4);font-size:11px;font-weight:500" onclick="openAddReminder()">';
+  html += '<span style="font-size:14px">+</span> 添加';
+  html += '</div>';
+  html += '</div>';
   container.innerHTML = html;
+  updateRecordBottomGrid();
 }
 
 function toggleTodayTodoSection(){
@@ -9519,6 +9539,7 @@ function renderGoalPreview(){
   if(!STATE.goals || STATE.goals.length === 0){
     el.style.display = 'none';
     el.innerHTML = '';
+    updateRecordBottomGrid();
     return;
   }
   var today = formatDate(new Date());
@@ -9534,44 +9555,45 @@ function renderGoalPreview(){
   });
   if(activeGoals.length === 0){
     el.style.display = 'none';
+    updateRecordBottomGrid();
     return;
   }
-  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:20px">';
-  html += '<span style="font-size:14px;font-weight:700;color:var(--text)">\u{1F3AF} \u76EE\u6807\u8FDB\u5EA6</span>';
-  html += '<span style="font-size:12px;color:var(--text4);flex:1">' + activeGoals.length + '\u4E2A\u8FDB\u884C\u4E2D</span>';
-  html += '<span style="font-size:12px;color:var(--green);font-weight:500;cursor:pointer" onclick="goToGoalPage()">\u5168\u90E8 \u203A</span>';
+  html += '<div class="rb-title">';
+  html += '<span>🎯 目标进度</span>';
+  html += '<span class="rb-sub">' + activeGoals.length + '个进行中</span>';
+  html += '<span style="font-size:11px;color:var(--green);font-weight:500;cursor:pointer;margin-left:auto" onclick="event.stopPropagation();goToGoalPage()">全部 ›</span>';
   html += '</div>';
-  html += '<div style="display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px" onclick="goToGoalPage()">';
-  html += '<style>#goalPreviewSection > div:last-child::-webkit-scrollbar{display:none}</style>';
+  html += '<div style="display:flex;flex-direction:column;gap:6px">';
   activeGoals.forEach(function(item){
     var g = item.g;
     var dl2 = getDeadlineLevel(g, today);
-    var goalName = g.name || g.actionName || '\u76EE\u6807';
+    var goalName = g.name || g.actionName || '目标';
     var hasSubs = g.subGoals && g.subGoals.length > 0;
     var resolvedName = hasSubs ? '' : (ALIAS_MAP[(g.actionName||'').toLowerCase()] || g.actionName);
     var act = hasSubs ? {} : (getCustomActions()[resolvedName] || ACTION_DICT[resolvedName] || {});
-    var icon = act.icon || '\u{1F3AF}';
-    var cat = act.cat || '\u5176\u4ED6';
+    var icon = act.icon || '🎯';
+    var cat = act.cat || '其他';
     var color = getCatColor(cat);
     var unit = getActionUnit(resolvedName || g.actionName);
-    html += '<div style="flex-shrink:0;width:140px;background:var(--card);border-radius:14px;padding:12px;box-shadow:0 1px 3px var(--shadow);cursor:pointer">';
-  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px">';
-    html += '<div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:'+color+'20">'+getActionIconStyled(icon, cat, 16)+'</div>';
-    html += '<span style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+escapeHtml(goalName)+'</span>';
+    html += '<div style="background:var(--card);border-radius:10px;padding:8px 10px;cursor:pointer" onclick="goToGoalPage()">';
+    html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">';
+    html += '<div style="width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:'+color+'20">'+getActionIconStyled(icon, cat, 12)+'</div>';
+    html += '<span style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">'+escapeHtml(goalName)+'</span>';
     html += '</div>';
     var barColor2 = dl2.level >= 2 ? (dl2.level === 3 ? '#FF453A' : '#FF9F0A') : color;
-    html += '<div style="height:6px;border-radius:3px;background:var(--card3);overflow:hidden;margin-bottom:6px">';
-    html += '<div style="width:'+item.pct+'%;height:100%;background:'+barColor2+';border-radius:3px"></div>';
+    html += '<div style="height:4px;border-radius:2px;background:var(--card3);overflow:hidden;margin-bottom:4px">';
+    html += '<div style="width:'+item.pct+'%;height:100%;background:'+barColor2+';border-radius:2px"></div>';
     html += '</div>';
     html += '<div style="display:flex;justify-content:space-between;align-items:center">';
-    html += '<span style="font-size:11px;color:var(--text3)">'+item.done+'/'+item.total+' '+escapeHtml(unit)+'</span>';
-    html += '<span style="font-size:11px;color:'+(dl2.level>=2?(dl2.level===3?'#FF453A':'#FF9F0A'):color)+';font-weight:600">'+(dl2.text || item.pct+'%')+'</span>';
+    html += '<span style="font-size:10px;color:var(--text3)">'+item.done+'/'+item.total+' '+escapeHtml(unit)+'</span>';
+    html += '<span style="font-size:10px;color:'+(dl2.level>=2?(dl2.level===3?'#FF453A':'#FF9F0A'):color)+';font-weight:600">'+(dl2.text || item.pct+'%')+'</span>';
     html += '</div>';
     html += '</div>';
   });
   html += '</div>';
   el.innerHTML = html;
   el.style.display = 'block';
+  updateRecordBottomGrid();
 }
 
 
