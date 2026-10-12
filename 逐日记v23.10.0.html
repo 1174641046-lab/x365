@@ -10777,7 +10777,23 @@ function switchPage(page, el, noHistory){
     renderSubjectFilters();
     initScrollFloat();
   }
-  if(page === 'calendar'){ calDetailVisible = false; renderCalendar(); renderSubjectFilters(); renderCalActionFilter(); initScrollFloat(); }
+  if(page === 'calendar'){
+    var todayStr = formatDate(new Date());
+    var isCurrentMonth = calCurrentMonth.getFullYear() === new Date().getFullYear() && calCurrentMonth.getMonth() === new Date().getMonth();
+    // V23.10.4: 若当前月份为今天所在月且当天有记录，自动显示详情
+    if(isCurrentMonth){
+      var todayRecords = STATE.records.filter(function(r){ return r.date === todayStr });
+      if(todayRecords.length > 0){
+        calSelectedDate = todayStr;
+        calDetailVisible = true;
+      } else {
+        calDetailVisible = false;
+      }
+    } else {
+      calDetailVisible = false;
+    }
+    renderCalendar(); renderSubjectFilters(); renderCalActionFilter(); initScrollFloat();
+  }
   if(page === 'settings'){ loadState(); renderSettings(); updateThemeUI(); renderAtmosphere(); updateAtmStats(); window.scrollTo(0, 0); }
   // V21.27: 切换到设置页时回顶部
   // V21.0: 切换页面时自动取消批量管理
