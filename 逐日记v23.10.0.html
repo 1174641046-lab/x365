@@ -1175,10 +1175,6 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       <div style="text-align:center;padding:16px 0;color:var(--text4)">加载中...</div>
     </div>
 
-    <!-- V23.8.0: 今日待办 + 目标进度 一行两列 -->
-    <div class="record-bottom-grid" id="recordBottomGrid" style="display:none">
-      <div class="rb-card today-todo-section" id="todayTodoSection" style="display:none"></div>
-    </div>
   </div>
 
   <!-- ===== Timeline Page ===== -->
@@ -9272,6 +9268,25 @@ function renderCalAchievements(){
 function getActionUnit(name){
   if(!name) return '次';
   var resolved = ALIAS_MAP[name.toLowerCase()] || name;
+
+// V23.8.0: 统一读取单次/单位（兼容旧版 number 和新版 {value,unit}）
+function getDurationPerTime(act){
+  if(!act) return 0;
+  if(typeof act.durationPerTime === 'object' && act.durationPerTime && act.durationPerTime.value > 0) return act.durationPerTime.value;
+  if(typeof act.durationPerTime === 'number' && act.durationPerTime > 0) return act.durationPerTime;
+  return 0;
+}
+function getDurationPerTimeUnit(act){
+  if(!act) return '分钟';
+  if(typeof act.durationPerTime === 'object' && act.durationPerTime && act.durationPerTime.unit) return act.durationPerTime.unit;
+  return '分钟';
+}
+function getDurationPerTimeObj(act){
+  if(!act) return null;
+  if(typeof act.durationPerTime === 'object' && act.durationPerTime && act.durationPerTime.value > 0) return act.durationPerTime;
+  if(typeof act.durationPerTime === 'number' && act.durationPerTime > 0) return {value: act.durationPerTime, unit: '分钟'};
+  return null;
+}
   if(ACTION_DICT[resolved] && ACTION_DICT[resolved].unit) return ACTION_DICT[resolved].unit;
   var custom = getCustomActions();
   if(custom[resolved] && custom[resolved].unit) return custom[resolved].unit;
