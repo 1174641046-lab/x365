@@ -9269,6 +9269,14 @@ function getActionUnit(name){
   if(!name) return '次';
   var resolved = ALIAS_MAP[name.toLowerCase()] || name;
 
+if(ACTION_DICT[resolved] && ACTION_DICT[resolved].unit) return ACTION_DICT[resolved].unit;
+  var custom = getCustomActions();
+  if(custom[resolved] && custom[resolved].unit) return custom[resolved].unit;
+  if(ACTION_DICT[name] && ACTION_DICT[name].unit) return ACTION_DICT[name].unit;
+  if(custom[name] && custom[name].unit) return custom[name].unit;
+  return '次';
+}
+
 // V23.8.0: 统一读取单次/单位（兼容旧版 number 和新版 {value,unit}）
 function getDurationPerTime(act){
   if(!act) return 0;
@@ -9286,13 +9294,6 @@ function getDurationPerTimeObj(act){
   if(typeof act.durationPerTime === 'object' && act.durationPerTime && act.durationPerTime.value > 0) return act.durationPerTime;
   if(typeof act.durationPerTime === 'number' && act.durationPerTime > 0) return {value: act.durationPerTime, unit: '分钟'};
   return null;
-}
-  if(ACTION_DICT[resolved] && ACTION_DICT[resolved].unit) return ACTION_DICT[resolved].unit;
-  var custom = getCustomActions();
-  if(custom[resolved] && custom[resolved].unit) return custom[resolved].unit;
-  if(ACTION_DICT[name] && ACTION_DICT[name].unit) return ACTION_DICT[name].unit;
-  if(custom[name] && custom[name].unit) return custom[name].unit;
-  return '次';
 }
 
 
