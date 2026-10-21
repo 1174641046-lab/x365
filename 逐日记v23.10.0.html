@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-title" content="逐日记">
-<link rel="manifest" href="manifest.json?v=67">
+<link rel="manifest" href="manifest.json?v=78">
 <link rel="apple-touch-icon" href="icon-192.png">
-  <title>逐日记 v23.10.6</title>
+  <title>逐日记 v23.10.7</title>
 <style>
 /* ===== Reset ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -1420,7 +1420,7 @@ body{font-family:var(--font);color:var(--text);font-size:15px;line-height:1.5;-w
       <div class="settings-card-section">
         <div class="settings-version-row">
           <div class="settings-version-label">版本</div>
-          <div class="settings-version-num">v23.10.6</div>
+          <div class="settings-version-num">v23.10.7</div>
         </div>
         <div class="settings-card-item" onclick="showToast('逐日记：记录每一个微小行为，见证累积的力量 💪')">
           <div class="settings-card-item-icon"><img src="icon-192.png" style="width:22px;height:22px;border-radius:6px;object-fit:cover"></div>
@@ -11724,8 +11724,25 @@ function renderCalDayDetail(dateStr){
         histCountMap[n].minutes += (a.quantity || 1) * a.actualDuration;
       } else {
         var actDef2 = STATE.customActions[n] || {};
-        if(getDurationPerTime(actDef2) > 0) histCountMap[n].minutes += (a.quantity || 1) * getDurationPerTime(actDef2);
+if(getDurationPerTime(actDef2) > 0) histCountMap[n].minutes += (a.quantity || 1) * getDurationPerTime(actDef2);
       }
+    });
+  });
+
+// V23.10.7: 构建各动作全部历史实例（按 日期+时间 升序），用于显示"第n次打卡"
+  var histOrderMap = {};
+  STATE.records.forEach(function(r){
+    if(STATE.calFilter !== 'all' && r.subject !== STATE.calFilter) return;
+    r.actions.forEach(function(a){
+      var hn = a.standardName || a.action;
+      if(!hn) return;
+      if(!histOrderMap[hn]) histOrderMap[hn] = [];
+      histOrderMap[hn].push({date: r.date, time: r.time || '', id: r.id});
+    });
+  });
+  Object.keys(histOrderMap).forEach(function(hn){
+    histOrderMap[hn].sort(function(x, y){
+      return ((x.date || '') + (x.time || '')).localeCompare((y.date || '') + (y.time || '')) || String(x.id).localeCompare(String(y.id));
     });
   });
 
@@ -11752,10 +11769,25 @@ function renderCalDayDetail(dateStr){
       });
       imagesHtml += '</div>';
     }
-    // V23.8.0: 动作历史累计仅在有筛选时显示
+// V23.8.0: 动作历史累计仅在有筛选时显示
     var hcm = histCountMap[m.standardName] || {count:0, minutes:0};
     var hcmUnit = getDurationPerTimeUnit(STATE.customActions[m.standardName] || {});
-    var histStr = (STATE.calActionFilter.length > 0 && hcm.count > 0) ? '<div style="font-size:11px;color:var(--text4);margin-top:2px">📊 历史累计打卡 '+hcm.count+' 次'+(hcm.minutes>0?'，共 '+hcm.minutes+' '+hcmUnit:'')+'</div>' : '';
+    // V23.10.7: 计算当天该动作记录在历史中的第几次
+    var nthTxt = '';
+    if(STATE.calActionFilter.length > 0 && hcm.count > 0){
+      var orderedList = histOrderMap[m.standardName] || [];
+      var seqPos = [];
+      orderedList.forEach(function(o, oi){
+        if(o.date === dateStr) seqPos.push(oi + 1);
+      });
+      // 同一记录中多次同动作按 action 计数，通常一天一次，这里取最小值~最大值
+      if(seqPos.length > 0){
+        var seqFirst = seqPos[0];
+        var seqLast = seqPos[seqPos.length - 1];
+        nthTxt = (seqFirst === seqLast) ? ('第' + seqFirst + '次') : ('第' + seqFirst + '~' + seqLast + '次');
+      }
+    }
+    var histStr = (STATE.calActionFilter.length > 0 && nthTxt) ? '<div style="font-size:11px;color:var(--text4);margin-top:2px">📊 历史累计打卡 ' + nthTxt + (hcm.minutes>0?'，共 '+hcm.minutes+' '+hcmUnit:'')+'</div>' : '';
     var calDetailId = 'calDetail_' + idx;
     // V19.14: count=1 直接点击编辑，count>1 点击展开后逐条编辑
     var rowClick = m.count > 1 
